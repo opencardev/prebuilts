@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.6.7
+version=0.6.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -406,7 +406,9 @@ if [ ! -z $1 ]; then
 			    if [ "$3" -gt "$4" ]; then
 				cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers daynight 0-23 0-23 | 3${RESET}"
 			    else
-				cs_echo "Day hours: $3..$4"
+				night=$(expr $4 - 1)
+				dayhours="$3..$night"
+				cs_echo "Day hours: $3..$night"
 				# Night hours 0 -> day start
 				hours="0"
 				for ((i=1; i<$3; ++i))
@@ -423,7 +425,7 @@ if [ ! -z $1 ]; then
 				sudo sed -i 's/^RTC_DAY_START=.*/RTC_DAY_START='$3'/' /boot/crankshaft/crankshaft_env.sh
 				sudo sed -i 's/^RTC_NIGHT_START=.*/RTC_NIGHT_START='$4'/' /boot/crankshaft/crankshaft_env.sh
 				# Setup timers
-				sudo sed -i 's/^OnCalendar=.*/OnCalendar=*-*-* '$3'..'$4':*:00/' /etc/systemd/system/daymode.timer
+				sudo sed -i 's/^OnCalendar=.*/OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
 				sudo sed -i 's/^OnCalendar=.*/OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
 				sudo systemctl daemon-reload >/dev/null 2>&1
 				sudo systemctl stop daymode.timer >/dev/null 2>&1
