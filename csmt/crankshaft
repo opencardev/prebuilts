@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.6.6
+version=0.6.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -915,7 +915,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
-		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/hawkeyexp/android-udev-rules/master/51-android.rules --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
+		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
 		if [ -f /etc/udev/rules.d/51-android.master ]; then
 		    LOCAL=`wc -c /etc/udev/rules.d/51-android.master | awk '{print $1}'`
 		else
@@ -925,7 +925,7 @@ if [ ! -z $1 ]; then
 		    cs_echo "udev rules are up to date."
 		else
 		    # get source file
-		    sudo wget --no-check-certificate -O /etc/udev/rules.d/51-android.master https://raw.githubusercontent.com/hawkeyexp/android-udev-rules/master/51-android.rules
+		    sudo wget --no-check-certificate -O /etc/udev/rules.d/51-android.master https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules
 		    # check download
 		    LOCAL=`wc -c /etc/udev/rules.d/51-android.master | awk '{print $1}'`
 		    if [ "$REMOTE" == "$LOCAL" ]; then
@@ -961,7 +961,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/hawkeyexp/crankshaft-updates/master/crankshaft --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
+		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
 		if [ -f /usr/local/bin/crankshaft ]; then
 		    LOCAL=`wc -c /usr/local/bin/crankshaft | awk '{print $1}'`
 		else
@@ -973,7 +973,7 @@ if [ ! -z $1 ]; then
                     sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
 		    # get source file
-		    sudo wget --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/hawkeyexp/crankshaft-updates/master/crankshaft
+		    sudo wget --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
 		    # check download
 		    LOCAL=`wc -c /usr/local/bin/crankshaft.update | awk '{print $1}'`
 		    if [ "$REMOTE" == "$LOCAL" ]; then
