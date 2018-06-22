@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.6.8
+version=0.6.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1088,8 +1088,22 @@ if [ ! -z $1 ]; then
 		    cs_echo "Done."
 		fi
 		;;
+	    identify)
+		    sudo lsusb | cut -d" " -f2,4 | sed s/://g |
+		    while IFS= read -r line
+		    do
+			bus=$(echo $line | cut -d" " -f1)
+			device=$(echo $line | cut -d" " -f2)
+			cs_echo ""
+			cs_echo "${RED}${BOLD}USB-Device $bus/$device:${RESET}"
+			cs_echo ""
+			sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)'
+		    done
+
+
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft usb list|mount|umount${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft usb list|mount|umount|identify${RESET}"
 		;;
 	esac
     fi
@@ -1354,6 +1368,7 @@ else
     echo "  |- list                     - List available usb mass storage drives"
     echo "  |- mount x                  - Mount 1st partition from given device (sda,sdb,sdc,...)"
     echo "  |- umount                   - Unmount mounted usb drive"
+    echo "  |- identify                 - Give us id's, manufacturer & model of connected usb devices"
     echo ""
     echo "gpio                          GPIO relted stuff"
     echo "  |- status                   - List current state of gpio pins"
