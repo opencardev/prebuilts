@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.6.9
+version=0.7.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -92,6 +92,23 @@ function cs_rtc() {
 }
 
 # Display functions
+
+function cs_check_usbdevice() {
+    sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
+    while IFS= read -r line
+    do
+	bus=$(echo $line | cut -d" " -f1)
+	device=$(echo $line | cut -d" " -f2)
+	FULLDESC=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)' | sed 's/E: //g'`
+	ID_MODEL=`echo $FULLDESC | cut -d" " -f1 | grep ID_MODEL= | cut -d= -f2`
+	ID_MODEL_ID=`echo $FULLDESC | cut -d" " -f2 | grep ID_MODEL_ID= | cut -d= -f2`
+	ID_VENDOR=`echo $FULLDESC | cut -d" " -f3 | grep ID_VENDOR= | cut -d= -f2`
+	ID_VENDOR_ID=`echo $FULLDESC | cut -d" " -f4 | grep ID_VENDOR_ID= | cut -d= -f2`
+	if [ "$ID_MODEL" == "$1" ] && [ "$ID_MODEL_ID" == "$2" ] && [ "$ID_VENDOR" == "$3" ] && [ "$ID_VENDOR_ID" == "$4" ]; then
+	    echo "Identified!"
+	fi
+    done
+}
 
 function cs_show_autodetect() {
     plymouth --hide-splash > /dev/null 2>&1 # hide the boot splash
@@ -563,9 +580,9 @@ if [ ! -z $1 ]; then
 	    autodetect)
 		if [ $DISPLAY_AUTO_DETECT -eq 1 ]; then
 		    # Waveshare Inc. 7inch HDMI LCD(B) Rev2.1
-		    check=`/usr/bin/lsusb | grep 0eef:0005 | awk {'print $6'}`
-		    if [ ! -z $check ]; then
-                        cs_show_autodetect
+		    check=$(cs_check_usbdevice "By_ZH851" "0005" "BYZHYYZHY" "0eef")
+		    if [ "$check" == "Identified!" ]; then
+			cs_show_autodetect
 		        cs_bootrw
 		        sudo sh -c "echo '0eef:0005 - Waveshare Inc. 7inch HDMI LCD (b) Rev 2.1' > /boot/crankshaft/display_detected"
 		        cs_clean_display_entry
@@ -1089,7 +1106,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    identify)
-		    sudo lsusb | cut -d" " -f2,4 | sed s/://g |
+		    sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
 		    while IFS= read -r line
 		    do
 			bus=$(echo $line | cut -d" " -f1)
@@ -1097,10 +1114,16 @@ if [ ! -z $1 ]; then
 			cs_echo ""
 			cs_echo "${RED}${BOLD}USB-Device $bus/$device:${RESET}"
 			cs_echo ""
-			sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)'
+			FULLDESC=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)' | sed 's/E: //g'`
+			ID_MODEL=`echo $FULLDESC | cut -d" " -f1 | grep ID_MODEL= | cut -d= -f2`
+			ID_MODEL_ID=`echo $FULLDESC | cut -d" " -f2 | grep ID_MODEL_ID= | cut -d= -f2`
+			ID_VENDOR=`echo $FULLDESC | cut -d" " -f3 | grep ID_VENDOR= | cut -d= -f2`
+			ID_VENDOR_ID=`echo $FULLDESC | cut -d" " -f4 | grep ID_VENDOR_ID= | cut -d= -f2`
+			echo "Model    : "$ID_MODEL
+			echo "Model ID : "$ID_MODEL_ID
+			echo "Vendor   : "$ID_VENDOR
+			echo "Vendor ID: "$ID_VENDOR_ID
 		    done
-
-
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft usb list|mount|umount|identify${RESET}"
