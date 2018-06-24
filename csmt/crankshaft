@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.0
+version=0.7.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -578,6 +578,18 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    autodetect)
+		if [ "$(dmesg | grep -i ft5406)" != "" ]; then
+		    # RPi Display
+		    cs_show_autodetect
+		    cs_bootrw
+		    sudo sh -c "echo 'RPi Display' > /boot/crankshaft/display_detected"
+		    cs_clean_display_entry
+		    # Disable autodetect
+		    sudo sed -i 's/^DISPLAY_AUTO_DETECT=.*/DISPLAY_AUTO_DETECT=0/' /boot/crankshaft/crankshaft_env.sh
+		    cs_bootro
+		    sudo /sbin/shutdown -r now
+		fi
+
 		if [ $DISPLAY_AUTO_DETECT -eq 1 ]; then
 		    # Waveshare Inc. 7inch HDMI LCD(B) Rev2.1
 		    check=$(cs_check_usbdevice "By_ZH851" "0005" "BYZHYYZHY" "0eef")
