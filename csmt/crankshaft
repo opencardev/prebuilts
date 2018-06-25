@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.1
+version=0.7.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -355,7 +355,9 @@ if [ ! -z $1 ]; then
 			    fi
 			fi
 			cs_systemro
-			sudo systemctl start disconnect.timer >/dev/null 2>&1
+			if [ ! -f /tmp/android_device ]; then
+			    sudo systemctl start disconnect.timer >/dev/null 2>&1
+			fi
 		    else
 			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop${RESET}"
 		    fi
@@ -377,7 +379,9 @@ if [ ! -z $1 ]; then
 			    sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
 			    cs_systemrw
 			fi
-			sudo systemctl start shutdown.timer >/dev/null 2>&1
+			if [ ! -f /tmp/android_device ]; then
+			    sudo systemctl start shutdown.timer >/dev/null 2>&1
+			fi
 		    else
 			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers shutdown start|stop${RESET}"
 		    fi
@@ -409,8 +413,10 @@ if [ ! -z $1 ]; then
 		    sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
 		fi
 		cs_systemro
-		sudo systemctl start disconnect.timer >/dev/null 2>&1
-		sudo systemctl start shutdown.timer >/dev/null 2>&1
+		if [ ! -f /tmp/android_device ]; then
+		    sudo systemctl start disconnect.timer >/dev/null 2>&1
+		    sudo systemctl start shutdown.timer >/dev/null 2>&1
+		fi
 		;;
 	    daynight)
 		if [ -z $3 ] || [ -z $4 ]; then
