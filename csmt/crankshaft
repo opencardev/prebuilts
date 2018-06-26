@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.2
+version=0.7.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1272,6 +1272,7 @@ if [ ! -z $1 ]; then
 	cs_systemrw
 	currentsize=$(sudo parted /dev/mmcblk0p2 print | tail -n2 | head -n1 | awk {'print $4'})
 	cs_echo "Current partition size: $currentsize"
+        echo "[${CYAN}${BOLD} INFO ${RESET}] " >/dev/tty3
         echo "[${CYAN}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
         echo "[${CYAN}${BOLD} INFO ${RESET}] Current partition size: $currentsize" >/dev/tty3
         echo "[${CYAN}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
