@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.3
+version=0.7.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1124,24 +1124,44 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    identify)
+		    RUN=0
+		    CHECK=`ps -ax | grep autoapp | grep -v grep | tail -n 1`
+		    if [ "$CHECK" != "" ]; then
+			echo "Auto exit OpenAuto (restart after exit of this check)..."
+			echo ""
+			sudo systemctl stop autoapp
+			RUN=1
+			if [ -f /tmp/android_device ]; then
+			    echo "Please disconnect your phone and reconnect to get correct id's"
+			    echo "cause device switches the id's in android auto mode!"
+			    echo ""
+			    echo "Script is waiting 30 seconds..."
+			    sleep 30
+			fi
+		    fi
 		    sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
 		    while IFS= read -r line
 		    do
 			bus=$(echo $line | cut -d" " -f1)
 			device=$(echo $line | cut -d" " -f2)
-			cs_echo ""
-			cs_echo "${RED}${BOLD}USB-Device $bus/$device:${RESET}"
-			cs_echo ""
+			echo ""
+			echo "${RED}${BOLD}USB-Device $bus/$device:${RESET}"
+			echo ""
 			FULLDESC=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)' | sed 's/E: //g'`
 			ID_MODEL=`echo $FULLDESC | cut -d" " -f1 | grep ID_MODEL= | cut -d= -f2`
 			ID_MODEL_ID=`echo $FULLDESC | cut -d" " -f2 | grep ID_MODEL_ID= | cut -d= -f2`
+			ID_MODEL_FROM_DATABASE=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL_FROM_DATABASE=)' | sed 's/E: //g' | cut -d= -f2`
 			ID_VENDOR=`echo $FULLDESC | cut -d" " -f3 | grep ID_VENDOR= | cut -d= -f2`
 			ID_VENDOR_ID=`echo $FULLDESC | cut -d" " -f4 | grep ID_VENDOR_ID= | cut -d= -f2`
-			echo "Model    : "$ID_MODEL
+			ID_VENDOR_FROM_DATABASE=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_VENDOR_FROM_DATABASE=)' | sed 's/E: //g' | cut -d= -f2`
 			echo "Model ID : "$ID_MODEL_ID
-			echo "Vendor   : "$ID_VENDOR
 			echo "Vendor ID: "$ID_VENDOR_ID
+			echo "Model    : "$ID_MODEL" ("$ID_MODEL_FROM_DATABASE")"
+			echo "Vendor   : "$ID_VENDOR" ("$ID_VENDOR_FROM_DATABASE")"
 		    done
+		    if [ $RUN -eq 1 ]; then
+			sudo systemctl start autoapp
+		    fi
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft usb list|mount|umount|identify${RESET}"
