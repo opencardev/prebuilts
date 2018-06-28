@@ -1,0 +1,10 @@
+buildsystem/BINARY_FILES/*
+buildsystem/aasdk/*
+buildsystem/aasdk_build/*
+buildsystem/gpio2kbd/*
+buildsystem/openauto/*
+buildsystem/openauto_build/*
+buildsystem/qt510/*
+buildsystem/qt510_build/*
+buildsystem/qt511/*
+buildsystem/qt511_build/*
