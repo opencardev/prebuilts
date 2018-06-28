@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.4
+version=0.7.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -550,7 +550,11 @@ if [ ! -z $1 ]; then
 		    elif [ $3 == "restore" ]; then
 			if [ -f ${CS_VOLUME_STORE_FILE} ]; then
 			    volume=`cat ${CS_VOLUME_STORE_FILE}`
-			    amixer -q set Master $volume%
+			    if [ $volume -gt ${STARTUP_VOL_MAX} ]; then
+				amixer -q set Master ${STARTUP_VOL_MAX}%
+			    else
+				amixer -q set Master $volume%
+			    fi
 			    cs_echo "Volume Restored"
 			else
 			    cs_echo "Volume File Missing - Skipping restore"
