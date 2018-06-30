@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.6
+version=0.7.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -105,7 +105,7 @@ function cs_check_usbdevice() {
 	ID_VENDOR=`echo $FULLDESC | cut -d" " -f3 | grep ID_VENDOR= | cut -d= -f2`
 	ID_VENDOR_ID=`echo $FULLDESC | cut -d" " -f4 | grep ID_VENDOR_ID= | cut -d= -f2`
 	if [ "$ID_MODEL" == "$1" ] && [ "$ID_MODEL_ID" == "$2" ] && [ "$ID_VENDOR" == "$3" ] && [ "$ID_VENDOR_ID" == "$4" ]; then
-	    echo "Identified!"
+	    cs_echo "Identified!"
 	fi
     done
 }
@@ -128,6 +128,15 @@ function cs_clean_display_entry() {
     sudo sed -i '/./,/^$/!d' /boot/config.txt
 }
 
+function cs_clear_screen_header() {
+    USER=`who | awk '{print $1}' | sort | uniq`
+    if [ $USER ]; then
+	clear
+	cs_echo "${MAGENTA}${BOLD}Crankshaft Management Tool v$version is executing command...${RESET}"
+	cs_echo ""
+    fi
+}
+
 # echo if user logged in
 function cs_echo() {
     USER=`who | awk '{print $1}' | sort | uniq`
@@ -144,13 +153,8 @@ if [ ! -z $1 ]; then
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|version${RESET}"
 	exit 0
     fi
-    # clear shell if user logged in
-    USER=`who | awk '{print $1}' | sort | uniq`
-    if [ $USER ]; then
-	clear
-	cs_echo "${MAGENTA}${BOLD}Crankshaft Management Tool v$version is executing command...${RESET}"
-	cs_echo ""
-    fi
+
+    cs_clear_screen_header
 
     # brightness
     if [ $1 == "brightness" ]; then
@@ -348,10 +352,9 @@ if [ ! -z $1 ]; then
 			cs_systemrw
 			if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
 			    if [ -f /etc/cs_first_start_done ]; then
-				sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
+				sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
 			    else
-				sudo sed -i 's/^OnActiveSec=.*/OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
-				sudo touch /etc/cs_first_start_done
+				sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
 			    fi
 			fi
 			cs_systemro
@@ -376,7 +379,7 @@ if [ ! -z $1 ]; then
 			sudo systemctl stop shutdown.service >/dev/null 2>&1
 			if [ ! -z $DISCONNECTION_POWEROFF_MINS ]; then
 			    cs_systemrw
-			    sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
+			    sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
 			    cs_systemrw
 			fi
 			if [ ! -f /tmp/android_device ]; then
@@ -403,14 +406,13 @@ if [ ! -z $1 ]; then
 		cs_systemrw
 		if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
 		    if [ -f /etc/cs_first_start_done ]; then
-			sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
+			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
 		    else
-			sudo sed -i 's/^OnActiveSec=.*/OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
-			sudo touch /etc/cs_first_start_done
+			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
 		    fi
 		fi
 		if [ ! -z $DISCONNECTION_POWEROFF_MINS ]; then
-		    sudo sed -i 's/^OnActiveSec=.*/OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
+		    sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
 		fi
 		cs_systemro
 		if [ ! -f /tmp/android_device ]; then
@@ -448,8 +450,8 @@ if [ ! -z $1 ]; then
 				sudo sed -i 's/^RTC_DAY_START=.*/RTC_DAY_START='$3'/' /boot/crankshaft/crankshaft_env.sh
 				sudo sed -i 's/^RTC_NIGHT_START=.*/RTC_NIGHT_START='$4'/' /boot/crankshaft/crankshaft_env.sh
 				# Setup timers
-				sudo sed -i 's/^OnCalendar=.*/OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
-				sudo sed -i 's/^OnCalendar=.*/OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
 				sudo systemctl daemon-reload >/dev/null 2>&1
 				sudo systemctl stop daymode.timer >/dev/null 2>&1
 				sudo systemctl stop daymode.service >/dev/null 2>&1
@@ -1461,4 +1463,3 @@ else
 fi
 
 exit 0
-
