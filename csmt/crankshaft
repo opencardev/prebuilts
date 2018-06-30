@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.5
+version=0.7.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -824,6 +824,7 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable crankshaft.service >/dev/null 2>&1
 		sudo systemctl enable user_startup.service >/dev/null 2>&1
 		sudo systemctl enable devmode.service >/dev/null 2>&1
+		sudo systemctl enable debugmode.service >/dev/null 2>&1
 		sudo systemctl enable display.service >/dev/null 2>&1
 		sudo systemctl enable update.service >/dev/null 2>&1
 		sudo systemctl enable usbrestore.service >/dev/null 2>&1
@@ -832,9 +833,11 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable daymode.timer >/dev/null 2>&1
 		sudo systemctl enable nightmode.timer >/dev/null 2>&1
 		sudo systemctl enable tap2wake.service >/dev/null 2>&1
+		sudo systemctl enable regensshkeys.service >/dev/null 2>&1
+		sudo systemctl enable ssh.service >/dev/null 2>&1
+		sudo systemctl enable openauto.service >/dev/null 2>&1
+		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl disable rpicamserver.service >/dev/null 2>&1
-		sudo systemctl disable autoapp.service >/dev/null 2>&1
-		sudo systemctl disable ssh.service >/dev/null 2>&1
 		sudo systemctl disable wpa_supplicant.service >/dev/null 2>&1
 		sudo systemctl disable networking.service >/dev/null 2>&1
 		sudo systemctl disable dhcpcd.service >/dev/null 2>&1
@@ -843,10 +846,15 @@ if [ ! -z $1 ]; then
 		sudo systemctl disable systemd-rfkill.service >/dev/null 2>&1
 		sudo systemctl disable systemd-rfkill.socket >/dev/null 2>&1
 		sudo systemctl disable systemd-timesyncd.service >/dev/null 2>&1
+		sudo systemctl disable resize2fs_once.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
 		sudo systemctl disable bluetooth.service >/dev/null 2>&1
 		sudo systemctl disable hciuart.service >/dev/null 2>&1
+		sudo systemctl disable hostapd.service >/dev/null 2>&1
+		sudo systemctl disable dnsmasq.service >/dev/null 2>&1
+		sudo systemctl disable hotspot.service >/dev/null 2>&1
+		sudo systemctl disable systemd-backlight@.service >/dev/null 2>&1
 		sudo systemctl daemon-reload >/dev/null 2>&1
 		;;
 	    status)
@@ -1453,3 +1461,4 @@ else
 fi
 
 exit 0
+
