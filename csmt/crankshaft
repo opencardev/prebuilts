@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.7
+version=0.7.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1251,46 +1251,66 @@ if [ ! -z $1 ]; then
 
 		cs_echo "${YELLOW}${BOLD}Dev Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		cs_echo "GPIO: $SHOW_DEV - State: $DEV"
 		if [ $DEV -eq 1 ]; then
-		    cs_echo "${GREEN}${BOLD}Untriggered${RESET}"
+		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
 		else
-		    cs_echo "${RED}${BOLD}Triggered${RESET}"
+		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
 		fi
+		cs_echo "GPIO: $SHOW_DEV - State: $STATETEXT"
 
 		cs_echo ""
 		cs_echo "${YELLOW}${BOLD}Invert Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		cs_echo "GPIO: $SHOW_INV - State: $INV"
 		if [ $INV -eq 1 ]; then
-		    cs_echo "${GREEN}${BOLD}Untriggered${RESET}"
+		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
 		else
-		    cs_echo "${RED}${BOLD}Triggered${RESET}"
+		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
 		fi
+		cs_echo "GPIO: $SHOW_INV - State: $STATETEXT"
 
 		cs_echo ""
 		cs_echo "${YELLOW}${BOLD}X11 Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		cs_echo "GPIO: $SHOW_X11 - State: $X11"
 		if [ $X11 -eq 1 ]; then
-		    cs_echo "${GREEN}${BOLD}Untriggered${RESET}"
+		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
 		else
-		    cs_echo "${RED}${BOLD}Triggered${RESET}"
+		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
 		fi
+		cs_echo "GPIO: $SHOW_X11 - State: $STATETEXT"
 
 		cs_echo ""
 		cs_echo "${YELLOW}${BOLD}Android Connected${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		cs_echo "GPIO: $SHOW_ANDROID - State: $ANDROID"
-		if [ $ANDROID -eq 0 ]; then
-		    cs_echo "${GREEN}${BOLD}Untriggered${RESET}"
+		if [ "$SHOW_ANDROID" == "--" ]; then
+		    STATETEXT="${RED}${BOLD}disabled${RESET}"
 		else
-		    if [ "$SHOW_ANDROID" == "--" ]; then
-			cs_echo "${RED}${BOLD}disabled${RESET}"
+		    if [ $ANDROID -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
 		    else
-			cs_echo "${RED}${BOLD}Triggered${RESET}"
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
 		    fi
 		fi
+		cs_echo "GPIO: $SHOW_ANDROID - State: $STATETEXT"
+		;;
+	    all)
+		ARRAY=( 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 )
+		cs_echo ""
+		cs_echo "${YELLOW}${BOLD}Overview GPIO State${RESET}"
+		cs_echo "-----------------------------------"
+		for PIN in ${ARRAY[*]}; do
+		    STATE=$(gpio -g read $PIN)
+		    if [ ${#PIN} -ne 2 ]; then
+			SHOW="0"$PIN
+		    else
+			SHOW=$PIN
+		    fi
+		    if [ $STATE -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		    else
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    fi
+		    cs_echo "GPIO: $SHOW - State: $STATETEXT"
+		done
 		;;
 	    help)
 		pinout
@@ -1447,7 +1467,8 @@ else
     echo "  |- identify                 - Give us id's, manufacturer & model of connected usb devices"
     echo ""
     echo "gpio                          GPIO relted stuff"
-    echo "  |- status                   - List current state of gpio pins"
+    echo "  |- status                   - List current state of cs related gpio pins"
+    echo "  |- all                      - List current state of all gpio pins"
     echo "  |- help                     - Show infos about the system / pin layout"
     echo ""
     echo "hotspot                       Hotspot related stuff"
