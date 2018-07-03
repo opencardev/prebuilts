@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.9
+version=0.8.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -129,20 +129,24 @@ function cs_clean_display_entry() {
 }
 
 function cs_clear_screen_header() {
-    USER=`who | awk '{print $1}' | sort | uniq`
-    if [ $USER ]; then
+    PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
+    if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
 	clear
 	cs_echo "${MAGENTA}${BOLD}Crankshaft Management Tool v$version is executing command...${RESET}"
 	cs_echo ""
     fi
+    echo "Level: $SHLVL"
+    echo "PPID: $PPIDCHECK"
 }
 
 # echo if user logged in
 function cs_echo() {
-    USER=`who | awk '{print $1}' | sort | uniq`
-    if [ $USER ]; then
+    PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
+    if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
 	echo $1
     fi
+    echo "Level: $SHLVL"
+    echo "PPID: $PPIDCHECK"
 }
 
 # Abort if file does not exist
