@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.7.8
+version=0.7.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -111,8 +111,8 @@ function cs_check_usbdevice() {
 }
 
 function cs_show_autodetect() {
-    plymouth --hide-splash > /dev/null 2>&1 # hide the boot splash
-    chvt 3
+    sudo plymouth --hide-splash > /dev/null 2>&1 # hide the boot splash
+    sudo chvt 3
     echo "[${RED}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
     echo "[${RED}${BOLD} INFO ${RESET}] Display identified - Setting up..." >/dev/tty3
     echo "[${RED}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
@@ -1109,21 +1109,30 @@ if [ ! -z $1 ]; then
 		if [ ! -z $3 ]; then
 		    DEVICE=$3
 		    DEVICE="${DEVICE}1"
-		    if [ ! -d /media/USB ]; then
-			cs_systemrw
-			sudo mkdir /media/USB
-			cs_systemro
-		    fi
-		    if sudo mount | grep /media/USB > /dev/null; then
-			cs_echo "${YELLOW}${BOLD}Destination folder is still mounted - unmount it before new mount!${RESET}"
+                    if sudo mount | grep CSSTORAGE | grep /dev/$DEVICE > /dev/null; then
+		        cs_echo "${YELLOW}${BOLD}USB device is CSSTORAGE and handled by system - exit...${RESET}"
+		        cs_echo ""
+		        cs_echo "Done."
 			exit 0
-		    fi
-		    sudo mount -o sync /dev/$DEVICE /media/USB
-		    if [ $? -ne 0 ]; then
-			cs_echo "${RED}${BOLD}Mount was not possible - abbort...${RESET}"
-		    else
-			cs_echo "${GREEN}${BOLD}Mount successfull${RESET} - Device /dev/$DEVICE ($(sudo blkid /dev/$DEVICE | sed 's/.*LABEL="//' | cut -d'"' -f1))  mountet to /media/USB"
-		    fi
+                    else
+		        if [ ! -d /media/USB ]; then
+			    cs_systemrw
+			    sudo mkdir /media/USB
+			    cs_systemro
+		        fi
+		        if sudo mount | grep /media/USB > /dev/null; then
+			    cs_echo "${YELLOW}${BOLD}Destination folder is still mounted - unmount it before new mount!${RESET}"
+		    	    cs_echo ""
+		    	    cs_echo "Done."
+			    exit 0
+		        fi
+		        sudo mount -o sync /dev/$DEVICE /media/USB
+		        if [ $? -ne 0 ]; then
+			    cs_echo "${RED}${BOLD}Mount was not possible - abbort...${RESET}"
+		        else
+			    cs_echo "${GREEN}${BOLD}Mount successfull${RESET} - Device /dev/$DEVICE ($(sudo blkid /dev/$DEVICE | sed 's/.*LABEL="//' | cut -d'"' -f1))  mountet to /media/USB"
+		        fi
+                    fi
 		fi
 		;;
 	    umount)
@@ -1143,7 +1152,7 @@ if [ ! -z $1 ]; then
 		    if [ "$CHECK" != "" ]; then
 			echo "Auto exit OpenAuto (restart after exit of this check)..."
 			echo ""
-			sudo systemctl stop autoapp
+			sudo systemctl stop openauto
 			RUN=1
 			if [ -f /tmp/android_device ]; then
 			    echo "Please disconnect your phone and reconnect to get correct id's"
@@ -1174,7 +1183,7 @@ if [ ! -z $1 ]; then
 			echo "Vendor   : "$ID_VENDOR" ("$ID_VENDOR_FROM_DATABASE")"
 		    done
 		    if [ $RUN -eq 1 ]; then
-			sudo systemctl start autoapp
+			sudo systemctl start openauto
 		    fi
 		;;
 	    *)
