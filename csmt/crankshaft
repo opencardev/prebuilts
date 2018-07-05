@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.1
+version=0.8.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -839,6 +839,7 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable ssh.service >/dev/null 2>&1
 		sudo systemctl enable openauto.service >/dev/null 2>&1
 		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
+		sudo systemctl enable gpiotrigger.service >/dev/null 2>&1
 		sudo systemctl disable rpicamserver.service >/dev/null 2>&1
 		sudo systemctl disable wpa_supplicant.service >/dev/null 2>&1
 		sudo systemctl disable networking.service >/dev/null 2>&1
