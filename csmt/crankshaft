@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.2
+version=0.8.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -447,6 +447,8 @@ if [ ! -z $1 ]; then
 				done
 				cs_echo "Night hours: $hours"
 				# Setup env
+                                cs_bootrw
+                                cs_systemrw
 				sudo sed -i 's/^RTC_DAY_START=.*/RTC_DAY_START='$3'/' /boot/crankshaft/crankshaft_env.sh
 				sudo sed -i 's/^RTC_NIGHT_START=.*/RTC_NIGHT_START='$4'/' /boot/crankshaft/crankshaft_env.sh
 				# Setup timers
@@ -459,6 +461,8 @@ if [ ! -z $1 ]; then
 				sudo systemctl stop nightmode.service >/dev/null 2>&1
 				sudo systemctl start daymode.timer >/dev/null 2>&1
 				sudo systemctl start nightmode.timer >/dev/null 2>&1
+                                cs_bootro
+                                cs_systemro
 			    fi
 			fi
 		    else
