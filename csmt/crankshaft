@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.3
+version=0.8.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -368,7 +368,6 @@ if [ ! -z $1 ]; then
 		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop${RESET}"
 		fi
 		;;
-
 	    shutdown)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "stop" ]; then
@@ -403,21 +402,23 @@ if [ ! -z $1 ]; then
 		sudo systemctl stop disconnect.service >/dev/null 2>&1
 		sudo systemctl stop shutdown.timer >/dev/null 2>&1
 		sudo systemctl stop shutdown.service >/dev/null 2>&1
-		cs_systemrw
-		if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
-		    if [ -f /etc/cs_first_start_done ]; then
-			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
-		    else
-			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
+		if [ ! -f /tmp/devmode_enabled ]; then
+		    cs_systemrw
+		    if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
+			if [ -f /etc/cs_first_start_done ]; then
+			    sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_SCREEN_POWEROFF_SECS's/' /etc/systemd/system/disconnect.timer
+			else
+			    sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec=300s/' /etc/systemd/system/disconnect.timer
+			fi
 		    fi
-		fi
-		if [ ! -z $DISCONNECTION_POWEROFF_MINS ]; then
-		    sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
-		fi
-		cs_systemro
-		if [ ! -f /tmp/android_device ]; then
-		    sudo systemctl start disconnect.timer >/dev/null 2>&1
-		    sudo systemctl start shutdown.timer >/dev/null 2>&1
+		    if [ ! -z $DISCONNECTION_POWEROFF_MINS ]; then
+			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
+		    fi
+		    if [ ! -f /tmp/android_device ]; then
+			sudo systemctl start shutdown.timer >/dev/null 2>&1
+			sudo systemctl start disconnect.timer >/dev/null 2>&1
+		    fi
+		    cs_systemro
 		fi
 		;;
 	    daynight)
@@ -844,6 +845,7 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable openauto.service >/dev/null 2>&1
 		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl enable gpiotrigger.service >/dev/null 2>&1
+		sudo systemctl enable timerstart.service >/dev/null 2>&1
 		sudo systemctl disable rpicamserver.service >/dev/null 2>&1
 		sudo systemctl disable wpa_supplicant.service >/dev/null 2>&1
 		sudo systemctl disable networking.service >/dev/null 2>&1
