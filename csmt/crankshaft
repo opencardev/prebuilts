@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.5
+version=0.8.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -887,8 +887,11 @@ if [ ! -z $1 ]; then
 	    status)
 		systemctl list-units --type=service --all | grep 'Crankshaft\|UNIT'
 		;;
+	    failed)
+		systemctl list-units --state=failed --no-pager --all
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft services status|reset${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft services status|reset|failed${RESET}"
 		;;
 	esac
     fi
@@ -1461,6 +1464,7 @@ else
     echo "services                      Handle Systemd Services"
     echo "       |- reset               - Re-Init Default Boot State Of Services"
     echo "       |- status              - List State Of Crankshaft Services"
+    echo "       |- failed              - List failed services"
     echo ""
     echo "rtc                           Handle Real Time Clock"
     echo "  |- abx80x"
