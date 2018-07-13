@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.7
+version=0.8.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1003,6 +1003,7 @@ if [ ! -z $1 ]; then
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo "udev rules are up to date."
 		else
+                    cs_systemrw
 		    # get source file
 		    sudo wget --no-check-certificate -O /etc/udev/rules.d/51-android.master https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules
 		    # check download
@@ -1037,6 +1038,7 @@ if [ ! -z $1 ]; then
 			sudo rm /etc/udev/rules.d/51-android.master
 			cs_echo "Fail: udev rules not updated."
 		    fi
+                    cs_systemro
 		fi
 		;;
 	    csmt)
@@ -1049,6 +1051,7 @@ if [ ! -z $1 ]; then
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo "crankshaft management tool is up to date."
 		else
+                    cs_systemrw
                     sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
 		    # get source file
@@ -1065,6 +1068,7 @@ if [ ! -z $1 ]; then
 			sudo rm /usr/local/bin/crankshaft.update
 			cs_echo "Fail: crankshaft management tool not updated."
 		    fi
+                    cs_systemro
 		fi
 		;;
 	    *)
