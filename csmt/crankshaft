@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.6
+version=0.8.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1229,11 +1229,15 @@ if [ ! -z $1 ]; then
 		cs_echo "Hostapd: $HOSTAPD"
 		cs_echo "Dnsmasq: $DNSMASQ"
 		cs_echo ""
-		while read -r line
-		do
-		    LEASE=`echo $line | awk {'print "Device: "$4" ("$2") - IP-Lease: "$3'}`
-		    cs_echo "$LEASE"
-		done < "/tmp/dnsmasq.leases"
+                if [ -f /tmp/dnsmasq.leases ]; then
+		    while read -r line
+		    do
+		        LEASE=`echo $line | awk {'print "Device: "$4" ("$2") - IP-Lease: "$3'}`
+		        cs_echo "$LEASE"
+		    done < "/tmp/dnsmasq.leases"
+                else
+                    cs_echo "No DHCP lease file present"
+                fi
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft hotspot status${RESET}"
