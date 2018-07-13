@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.8.8
+version=0.9.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -39,6 +39,7 @@ function cs_audio_rpi() {
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -51,6 +52,7 @@ function cs_audio_hifiberry() {
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -58,16 +60,31 @@ function cs_audio_hifiberry() {
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=hifiberry-'$1 >> /boot/config.txt"
 }
+
 function cs_audio_audioinjector() {
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=audioinjector-'$1 >> /boot/config.txt"
+}
+
+function cs_audio_allo() {
+    sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
+    sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sh -c "echo '' >> /boot/config.txt"
+    sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
+    sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio' >> /boot/config.txt"
 }
 
 # RTC functions
@@ -545,6 +562,25 @@ if [ ! -z $1 ]; then
 		    fi
 		else
 		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero${RESET}"
+		fi
+		;;
+	    allo)
+		if [ ! -z $3 ]; then
+		    if [ $3 == "boss" ]; then
+			cs_bootrw
+			cs_audio_allo "boss"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "piano" ]; then
+			cs_bootrw
+			cs_audio_allo "piano"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    else
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio allo boss|piano${RESET}"
+		    fi
+		else
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio allo boss|piano${RESET}"
 		fi
 		;;
 	    volume)
@@ -1457,6 +1493,9 @@ else
     echo "               |- amp         - Hifiberry AMP+ (Not AMP2!)"
     echo "    |- audioinjector"
     echo "                   |- zero    - AudioInjector DAC Zero"
+    echo "    |- allo"
+    echo "          |- boss             - Allo Boss DAC"
+    echo "          |- piano            - Allo Piano DAC"
     echo "    |- volume"
     echo "            |- set x          - Set audio volume to x % (0-199)"
     echo "            |- get            - Get current audio volume in %"
