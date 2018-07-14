@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.2
+version=0.9.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -75,7 +75,7 @@ function cs_audio_audioinjector() {
 }
 function cs_audio_audioinjector_controls() {
     TEMPSTATE="/tmp/alsa.dummy"
-    echo "TEMPSTATE.audioinjectorpi {" > $TEMPSTATE
+    echo "state.audioinjectorpi {" > $TEMPSTATE
     echo "	control.1 {" >> $TEMPSTATE
     echo "		iface MIXER" >> $TEMPSTATE
     echo "		name 'Master Playback Volume'" >> $TEMPSTATE
@@ -241,7 +241,7 @@ function cs_audio_audioinjector_controls() {
     echo "		}" >> $TEMPSTATE
     echo "	}" >> $TEMPSTATE
     echo "}" >> $TEMPSTATE
-    sudo cp -f $TEMPSTATE > /boot/crankshaft/alsactl.state
+    sudo sh -c "cp -f $TEMPSTATE /boot/crankshaft/alsactl.state"
 }
 
 function cs_audio_allo() {
