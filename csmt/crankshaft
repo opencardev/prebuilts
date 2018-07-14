@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.3
+version=0.9.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -46,6 +46,7 @@ function cs_audio_rpi() {
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtparam=audio=on' >> /boot/config.txt"
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
 }
 
 function cs_audio_hifiberry() {
@@ -59,6 +60,7 @@ function cs_audio_hifiberry() {
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=hifiberry-'$1 >> /boot/config.txt"
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
 }
 
 function cs_audio_audioinjector() {
@@ -72,6 +74,7 @@ function cs_audio_audioinjector() {
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=audioinjector-'$1 >> /boot/config.txt"
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
 }
 function cs_audio_audioinjector_controls() {
     TEMPSTATE="/tmp/alsa.dummy"
@@ -255,6 +258,7 @@ function cs_audio_allo() {
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio' >> /boot/config.txt"
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
 }
 
 # RTC functions
