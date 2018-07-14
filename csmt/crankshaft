@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.0
+version=0.9.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -72,6 +72,176 @@ function cs_audio_audioinjector() {
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=audioinjector-'$1 >> /boot/config.txt"
+}
+function cs_audio_audioinjector_controls() {
+    TEMPSTATE="/tmp/alsa.dummy"
+    echo "TEMPSTATE.audioinjectorpi {" > $TEMPSTATE
+    echo "	control.1 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Master Playback Volume'" >> $TEMPSTATE
+    echo "		value.0 121" >> $TEMPSTATE
+    echo "		value.1 121" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type INTEGER" >> $TEMPSTATE
+    echo "			count 2" >> $TEMPSTATE
+    echo "			range '0 - 127'" >> $TEMPSTATE
+    echo "			dbmin -9999999" >> $TEMPSTATE
+    echo "			dbmax 600" >> $TEMPSTATE
+    echo "			dbvalue.0 0" >> $TEMPSTATE
+    echo "			dbvalue.1 0" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.2 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Master Playback ZC Switch'" >> $TEMPSTATE
+    echo "		value.0 false" >> $TEMPSTATE
+    echo "		value.1 false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 2" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.3 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Capture Volume'" >> $TEMPSTATE
+    echo "		value.0 31" >> $TEMPSTATE
+    echo "		value.1 31" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type INTEGER" >> $TEMPSTATE
+    echo "			count 2" >> $TEMPSTATE
+    echo "			range '0 - 31'" >> $TEMPSTATE
+    echo "			dbmin -3450" >> $TEMPSTATE
+    echo "			dbmax 1200" >> $TEMPSTATE
+    echo "			dbvalue.0 1200" >> $TEMPSTATE
+    echo "			dbvalue.1 1200" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.4 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Line Capture Switch'" >> $TEMPSTATE
+    echo "		value.0 false" >> $TEMPSTATE
+    echo "		value.1 false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 2" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.5 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Mic Boost Volume'" >> $TEMPSTATE
+    echo "		value 1" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type INTEGER" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "			range '0 - 1'" >> $TEMPSTATE
+    echo "			dbmin 0" >> $TEMPSTATE
+    echo "			dbmax 2000" >> $TEMPSTATE
+    echo "			dbvalue.0 2000" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.6 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Mic Capture Switch'" >> $TEMPSTATE
+    echo "		value true" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.7 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Sidetone Playback Volume'" >> $TEMPSTATE
+    echo "		value 0" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type INTEGER" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "			range '0 - 3'" >> $TEMPSTATE
+    echo "			dbmin -1500" >> $TEMPSTATE
+    echo "			dbmax -600" >> $TEMPSTATE
+    echo "			dbvalue.0 -1500" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.8 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'ADC High Pass Filter Switch'" >> $TEMPSTATE
+    echo "		value true" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.9 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Store DC Offset Switch'" >> $TEMPSTATE
+    echo "		value false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.10 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Playback Deemphasis Switch'" >> $TEMPSTATE
+    echo "		value false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.11 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Output Mixer Line Bypass Switch'" >> $TEMPSTATE
+    echo "		value false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.12 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Output Mixer Mic Sidetone Switch'" >> $TEMPSTATE
+    echo "		value false" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.13 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Output Mixer HiFi Playback Switch'" >> $TEMPSTATE
+    echo "		value true" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type BOOLEAN" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "	control.14 {" >> $TEMPSTATE
+    echo "		iface MIXER" >> $TEMPSTATE
+    echo "		name 'Input Mux'" >> $TEMPSTATE
+    echo "		value Mic" >> $TEMPSTATE
+    echo "		comment {" >> $TEMPSTATE
+    echo "			access 'read write'" >> $TEMPSTATE
+    echo "			type ENUMERATED" >> $TEMPSTATE
+    echo "			count 1" >> $TEMPSTATE
+    echo "			item.0 'Line In'" >> $TEMPSTATE
+    echo "			item.1 Mic" >> $TEMPSTATE
+    echo "		}" >> $TEMPSTATE
+    echo "	}" >> $TEMPSTATE
+    echo "}" >> $TEMPSTATE
+    sudo cp -f $TEMPSTATE > /boot/crankshaft/alsactl.state
 }
 
 function cs_audio_allo() {
@@ -555,6 +725,7 @@ if [ ! -z $1 ]; then
 		    if [ $3 == "zero" ]; then
 			cs_bootrw
 			cs_audio_audioinjector "wm8731-audio"
+                        cs_audio_audioinjector_controls
 			cs_bootro
 			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		    else
