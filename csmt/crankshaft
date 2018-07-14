@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.1
+version=0.9.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -728,11 +728,17 @@ if [ ! -z $1 ]; then
                         cs_audio_audioinjector_controls
 			cs_bootro
 			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "stereo" ]; then
+			cs_bootrw
+			cs_audio_audioinjector "wm8731-audio"
+                        cs_audio_audioinjector_controls
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		    else
-			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo${RESET}"
 		    fi
 		else
-		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo${RESET}"
 		fi
 		;;
 	    allo)
@@ -1664,6 +1670,7 @@ else
     echo "               |- amp         - Hifiberry AMP+ (Not AMP2!)"
     echo "    |- audioinjector"
     echo "                   |- zero    - AudioInjector DAC Zero"
+    echo "                   |- stereo  - AudioInjector DAC Stereo"
     echo "    |- allo"
     echo "          |- boss             - Allo Boss DAC"
     echo "          |- piano            - Allo Piano DAC"
