@@ -349,88 +349,91 @@ if [ ! -z $1 ]; then
 
     # brightness
     if [ $1 == "brightness" ]; then
-		if [ -f ${BRIGHTNESS_FILE} ]; then
-			case $2 in
-				save)
-					cs_bootrw
-					if [ -f /tmp/night_mode_enabled ]; then
-						sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
-						cs_echo "Brightness Level Night Saved"
-					else
-						sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
-						cs_echo "Brightness Level Day Saved"
-					fi
-					cs_bootro
-					;;
-				restore)
-					if [ -f /tmp/night_mode_enabled ]; then
-						if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
-							LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-							echo ${LVL} > ${BRIGHTNESS_FILE}
-							cs_echo "Brightness Level Night Restored"
-						else
-							echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-							cs_echo "Brightness Level Night Restored by default value"
-						fi
-						if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
-							LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-							echo ${LVL} > ${BRIGHTNESS_FILE}
-							cs_echo "Brightness Level Day Restored"
-						else
-							echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-							cs_echo "Brightness Level Day Restored by default value"
-						fi
-					fi
-					;;
-				up)
-					LVL=`cat ${BRIGHTNESS_FILE}`
-					if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
-						echo $((${LVL} + ${BR_STEP})) > ${BRIGHTNESS_FILE}
-						cs_echo "Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
-					fi
-					;;
-				down)
-					LVL=`cat ${BRIGHTNESS_FILE}`
-					if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
-						echo $((${LVL} - ${BR_STEP})) > ${BRIGHTNESS_FILE}
-						cs_echo "Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
-					fi
+		if [ ! -f ${BRIGHTNESS_FILE} ] && [ -v $BRIGHTNESS_COMMAND ]; then
+			touch ${BRIGHTNESS_FILE}
+			chmod 666 $BRIGHTNESS_FILE
+		fi
+		case $2 in
+			save)
+				cs_bootrw
+				if [ -f /tmp/night_mode_enabled ]; then
+					sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+					cs_echo "Brightness Level Night Saved"
+				else
+					sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
+					cs_echo "Brightness Level Day Saved"
+				fi
+				cs_bootro
 				;;
-				min)
-					echo ${BR_MIN} > ${BRIGHTNESS_FILE}
-					cs_echo "Brightness Level Set To Min: ${BR_MIN}"
-					;;
-				max)
-					echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-					cs_echo "Brightness Level Set To Max: ${BR_MAX}"
-					;;
-				get)
-					if [ ! -z $3 ]; then
-						if [ $3 == "location" ]; then
-							echo ${BRIGHTNESS_FILE}
-						elif [ $3 == "level" ]; then
-							# get current brightness level
-							LVL=`cat ${BRIGHTNESS_FILE}`
-							cs_echo "Cutrent Brightness Level: $LVL"
-						else
-							cs_echo "${YELLOW}${BOLD}Syntax: crankshaft brightness get location|level${RESET}"
-						fi
+			restore)
+				if [ -f /tmp/night_mode_enabled ]; then
+					if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
+						LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+						echo ${LVL} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Night Restored"
+					else
+						echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Night Restored by default value"
+					fi
+					if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
+						LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
+						echo ${LVL} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Day Restored"
+					else
+						echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Day Restored by default value"
+					fi
+				fi
+				;;
+			up)
+				LVL=`cat ${BRIGHTNESS_FILE}`
+				if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
+					echo $((${LVL} + ${BR_STEP})) > ${BRIGHTNESS_FILE}
+					cs_echo "Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
+				fi
+				;;
+			down)
+				LVL=`cat ${BRIGHTNESS_FILE}`
+				if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
+					echo $((${LVL} - ${BR_STEP})) > ${BRIGHTNESS_FILE}
+					cs_echo "Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
+				fi
+			;;
+			min)
+				echo ${BR_MIN} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Set To Min: ${BR_MIN}"
+				;;
+			max)
+				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Set To Max: ${BR_MAX}"
+				;;
+			get)
+				if [ ! -z $3 ]; then
+					if [ $3 == "location" ]; then
+						echo ${BRIGHTNESS_FILE}
+					elif [ $3 == "level" ]; then
+						# get current brightness level
+						LVL=`cat ${BRIGHTNESS_FILE}`
+						cs_echo "Cutrent Brightness Level: $LVL"
 					else
 						cs_echo "${YELLOW}${BOLD}Syntax: crankshaft brightness get location|level${RESET}"
 					fi
-					;;
-				set)
-					if [ ! -z $3 ]; then
-						echo $3 > ${BRIGHTNESS_FILE}
-						cs_echo "Brightness Level Set To Min: $3"
-					fi
-					;;
-				*)
-					cs_echo "${YELLOW}${BOLD}Syntax: crankshaft brightness save|restore|up|down|min|max|set|get${RESET}"
-					;;
-			esac
-		else
-			cs_echo "No device brightness file present"
+				else
+					cs_echo "${YELLOW}${BOLD}Syntax: crankshaft brightness get location|level${RESET}"
+				fi
+				;;
+			set)
+				if [ ! -z $3 ]; then
+					echo $3 > ${BRIGHTNESS_FILE}
+					cs_echo "Brightness Level Set To Min: $3"
+				fi
+				;;
+			*)
+				cs_echo "${YELLOW}${BOLD}Syntax: crankshaft brightness save|restore|up|down|min|max|set|get${RESET}"
+				;;
+		esac
+		if [ -v $BRIGHTNESS_COMMAND ]; then
+			eval $BRIGHTNESS_COMMAND
 		fi
     fi
 
