@@ -391,6 +391,9 @@ if [ ! -z $1 ]; then
 					if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
 						echo $((${LVL} + ${BR_STEP})) > ${BRIGHTNESS_FILE}
 						cs_echo "Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
+					else
+						echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Set To Max: ${BR_MAX}"
 					fi
 					;;
 				down)
@@ -398,6 +401,9 @@ if [ ! -z $1 ]; then
 					if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
 						echo $((${LVL} - ${BR_STEP})) > ${BRIGHTNESS_FILE}
 						cs_echo "Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
+					else
+						echo ${BR_MIN} > ${BRIGHTNESS_FILE}
+						cs_echo "Brightness Level Set To Min: ${BR_MIN}"
 					fi
 				;;
 				min)
@@ -426,7 +432,7 @@ if [ ! -z $1 ]; then
 				set)
 					if [ ! -z $3 ]; then
 						echo $3 > ${BRIGHTNESS_FILE}
-						cs_echo "Brightness Level Set To Min: $3"
+						cs_echo "Brightness Level Set To: $3"
 					fi
 					;;
 				*)
