@@ -8,10 +8,12 @@ cd $HOME
 
 # clone git repo
 if [ ! -d aasdk ]; then
-    git clone -b master https://github.com/opencardev/aasdk.git
+    git clone -b development https://github.com/opencardev/aasdk.git
 else
     cd aasdk
     git reset --hard
+    git fetch --all
+    git checkout development
     git pull
     cd $HOME
 fi
