@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.6
+version=0.9.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -35,7 +35,20 @@ function cs_systemro() {
 }
 
 # Audio functions
+function cs_audio_clean() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
+    sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+}
+
 function cs_audio_rpi() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
@@ -50,6 +63,7 @@ function cs_audio_rpi() {
 }
 
 function cs_audio_hifiberry() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
@@ -64,6 +78,7 @@ function cs_audio_hifiberry() {
 }
 
 function cs_audio_audioinjector() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
@@ -248,6 +263,7 @@ function cs_audio_audioinjector_controls() {
 }
 
 function cs_audio_allo() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
@@ -263,6 +279,7 @@ function cs_audio_allo() {
 
 # RTC functions
 function cs_rtc() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^# RTC Setup.*//' /boot/config.txt
     sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
     sudo sed -i '/dtoverlay=i2c_arm=/d' /boot/config.txt
@@ -279,7 +296,11 @@ function cs_rtc() {
     sudo systemctl enable hwclock-load.service >/dev/null 2>&1
     sudo systemctl enable hwclock-save.service >/dev/null 2>&1
     sudo systemctl daemon-reload
-    sudo dpkg-reconfigure tzdata
+    if [ ! -z $2 ]; then
+	sudo timedatectl set-timezone "$2"
+    else
+	sudo dpkg-reconfigure tzdata
+    fi
 }
 
 # Display functions
@@ -764,6 +785,12 @@ if [ ! -z $1 ]; then
 		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio allo boss|piano${RESET}"
 		fi
 		;;
+	    clean)
+		cs_bootrw
+		cs_audio_clean
+		cs_bootro
+		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		;;
 	    volume)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "set" ] && [ ! -z $4 ]; then
@@ -849,7 +876,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio rpi|hifiberry|volume${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio rpi|hifiberry|audioinjector|clean|volume${RESET}"
 		;;
 	esac
     fi
@@ -969,7 +996,7 @@ if [ ! -z $1 ]; then
 	    abx80x)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "abx80x"
+		cs_rtc "abx80x" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -977,7 +1004,7 @@ if [ ! -z $1 ]; then
 	    ds1307)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "ds1307"
+		cs_rtc "ds1307" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -985,7 +1012,7 @@ if [ ! -z $1 ]; then
 	    ds1339)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "ds1339"
+		cs_rtc "ds1339" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -993,7 +1020,7 @@ if [ ! -z $1 ]; then
 	    mcp7940x)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "mcp7940x"
+		cs_rtc "mcp7940x" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1001,7 +1028,7 @@ if [ ! -z $1 ]; then
 	    mcp7941x)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "mcp7941x"
+		cs_rtc "mcp7941x" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1009,7 +1036,7 @@ if [ ! -z $1 ]; then
 	    ds3231)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "ds3231"
+		cs_rtc "ds3231" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1017,7 +1044,7 @@ if [ ! -z $1 ]; then
 	    pcf2127)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "pcf2127"
+		cs_rtc "pcf2127" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1025,7 +1052,7 @@ if [ ! -z $1 ]; then
 	    pcf8523)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "pcf8523"
+		cs_rtc "pcf8523" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1033,7 +1060,7 @@ if [ ! -z $1 ]; then
 	    pcf8563)
 		cs_bootrw
 		cs_systemrw
-		cs_rtc "pcf8563"
+		cs_rtc "pcf8563" "$3"
 		cs_systemro
 		cs_bootro
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
@@ -1809,6 +1836,7 @@ else
     echo "    |- allo"
     echo "          |- boss             - Allo Boss DAC"
     echo "          |- piano            - Allo Piano DAC"
+    echo "    |- clean                  - Remove known configured boards including rpi audio"
     echo "    |- volume"
     echo "            |- set x          - Set audio volume to x % (0-100)"
     echo "            |- get            - Get current audio volume in %"
