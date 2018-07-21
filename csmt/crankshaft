@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.7
+version=0.9.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -834,15 +834,28 @@ if [ ! -z $1 ]; then
 			fi
 		    elif [ $3 == "restore" ]; then
 			cs_bootrw
-			CHECK=$(ps -ax | grep pulseaudio | grep -v grep | tail -n1 | awk {'print $1'})
-			if [ -z $CHECK ]; then
-    			    pulseaudio --start --log-target syslog
-			fi
 			if [ -f /boot/crankshaft/alsactl.state ]; then
+			    #kill pa if running
+			    CHECK=$(ps -ax | grep pulseaudio | grep -v grep | tail -n1 | awk {'print $1'})
+			    if [ -z $CHECK ]; then
+				cs_echo "Pulseaidio killed."
+				sudo killall pulseaudio
+			    fi
 			    alsactl -f /boot/crankshaft/alsactl.state restore
 			    cs_echo "Alsa state restored"
 			else
 			    cs_echo "No alsa state file to restored"
+			fi
+			#start pa if not running
+			CHECK=$(ps -ax | grep pulseaudio | grep -v grep | tail -n1 | awk {'print $1'})
+			if [ -z $CHECK ]; then
+			    cs_echo "Starting Pulseaidio."
+			    pulseaudio --start --log-target syslog
+			fi
+			CHECK_PA_USER=$(pactl info | grep 'User Name' | cut -d: -f2 | sed 's/ //g')
+			if [ "$CHECK_PA_USER" != "pi" ]; then
+			    cs_echo "Give pulseaidio 2sec to become ready."
+			    sleep 2
 			fi
 			volume=$(cat /boot/crankshaft/volume)
 			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
