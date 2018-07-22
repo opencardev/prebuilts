@@ -349,7 +349,7 @@ if [ ! -z $1 ]; then
 
     # brightness
     if [ $1 == "brightness" ]; then
-		if [ ! -f ${BRIGHTNESS_FILE} ] && [ -v $BRIGHTNESS_COMMAND ]; then
+		if [ ! -f ${BRIGHTNESS_FILE} ] && [ ! -z $BRIGHTNESS_COMMAND ]; then
 			touch ${BRIGHTNESS_FILE}
 			chmod 666 $BRIGHTNESS_FILE
 		fi
@@ -442,8 +442,8 @@ if [ ! -z $1 ]; then
 		else
 			cs_echo "No device brightness file present"
 		fi
-		if [ -v $BRIGHTNESS_COMMAND ]; then
-			eval $BRIGHTNESS_COMMAND
+		if [ ! -z $BRIGHTNESS_COMMAND ]; then
+			eval $BRIGHTNESS_COMMAND `cat ${BRIGHTNESS_FILE}`
 		fi
     fi
 
