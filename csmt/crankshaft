@@ -376,6 +376,7 @@ if [ ! -z $1 ]; then
 							echo ${BR_MAX} > ${BRIGHTNESS_FILE}
 							cs_echo "Brightness Level Night Restored by default value"
 						fi
+					else
 						if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
 							LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
 							echo ${LVL} > ${BRIGHTNESS_FILE}
