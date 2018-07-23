@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.8
+version=0.9.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -41,6 +41,7 @@ function cs_audio_clean() {
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -53,6 +54,7 @@ function cs_audio_rpi() {
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -68,6 +70,7 @@ function cs_audio_hifiberry() {
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -83,6 +86,7 @@ function cs_audio_audioinjector() {
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -268,12 +272,37 @@ function cs_audio_allo() {
     sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio,slave' >> /boot/config.txt"
+    sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+}
+
+function cs_audio_iqaudio() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sed -i 's/^dtparam=audio=.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=hifiberry.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
+    sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
+    sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sh -c "echo '' >> /boot/config.txt"
+    sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
+    if [ "$1" == "dacplus" ]; then
+        sudo sh -c "echo 'dtoverlay=iqaudio-dacplus' >> /boot/config.txt"
+    elif [ "$1" == "digiampplus" ]; then
+        sudo sh -c "echo 'dtoverlay=iqaudio-dacplus,unmute_amp' >> /boot/config.txt"
+    elif [ "$1" == "digiampplusauto" ]; then
+        sudo sh -c "echo 'dtoverlay=iqaudio-dacplus,auto_mute_amp' >> /boot/config.txt"
+    elif [ "$1" == "digiplus" ]; then
+        sudo sh -c "echo 'dtoverlay=iqaudio-digi-wm8804-audio' >> /boot/config.txt"
+    fi
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
 }
 
@@ -561,6 +590,7 @@ if [ ! -z $1 ]; then
 		    elif [ $3 == "start" ]; then
 			sudo systemctl stop disconnect.timer >/dev/null 2>&1
 			sudo systemctl stop disconnect.service >/dev/null 2>&1
+
 			cs_systemrw
 			if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
 			    if [ -f /etc/cs_first_start_done ]; then
@@ -571,7 +601,9 @@ if [ ! -z $1 ]; then
 			fi
 			cs_systemro
 			if [ ! -f /tmp/android_device ]; then
-			    sudo systemctl start disconnect.timer >/dev/null 2>&1
+			    if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
+				sudo systemctl start disconnect.timer >/dev/null 2>&1
+			    fi
 			fi
 		    elif [ $3 == "set" ] && [ ! -z $4 ]; then
 			re='^[0-9]+$'
@@ -582,11 +614,21 @@ if [ ! -z $1 ]; then
 			else
 			    cs_echo "Not numeric"
 			fi
+		    elif [ $3 == "enable" ]; then
+			cs_bootrw
+			sudo sed -i 's/^DISCONNECTION_SCREEN_POWEROFF_DISABLE=.*/DISCONNECTION_SCREEN_POWEROFF_DISABLE=0/' /boot/crankshaft/crankshaft_env.sh
+			cs_bootro
+		    elif [ $3 == "disable" ]; then
+			cs_bootrw
+			sudo sed -i 's/^DISCONNECTION_SCREEN_POWEROFF_DISABLE=.*/DISCONNECTION_SCREEN_POWEROFF_DISABLE=1/' /boot/crankshaft/crankshaft_env.sh
+			cs_bootro
+			sudo systemctl stop disconnect.timer >/dev/null 2>&1
+			sudo systemctl stop disconnect.service >/dev/null 2>&1
 		    else
-			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop|set${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop|set|enable|disable${RESET}"
 		    fi
 		else
-		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop|set${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers disconnect start|stop|set|enable|disable${RESET}"
 		fi
 		;;
 	    shutdown)
@@ -603,7 +645,9 @@ if [ ! -z $1 ]; then
 			    cs_systemrw
 			fi
 			if [ ! -f /tmp/android_device ]; then
-			    sudo systemctl start shutdown.timer >/dev/null 2>&1
+			    if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
+				sudo systemctl start shutdown.timer >/dev/null 2>&1
+			    fi
 			fi
 		    elif [ $3 == "set" ] && [ ! -z $4 ]; then
 			re='^[0-9]+$'
@@ -614,11 +658,21 @@ if [ ! -z $1 ]; then
 			else
 			    cs_echo "Not numeric"
 			fi
+		    elif [ $3 == "enable" ]; then
+			cs_bootrw
+			sudo sed -i 's/^DISCONNECTION_POWEROFF_DISABLE=.*/DISCONNECTION_POWEROFF_DISABLE=0/' /boot/crankshaft/crankshaft_env.sh
+			cs_bootro
+		    elif [ $3 == "disable" ]; then
+			cs_bootrw
+			sudo sed -i 's/^DISCONNECTION_POWEROFF_DISABLE=.*/DISCONNECTION_POWEROFF_DISABLE=1/' /boot/crankshaft/crankshaft_env.sh
+			cs_bootro
+			sudo systemctl stop shutdown.timer >/dev/null 2>&1
+			sudo systemctl stop shutdown.service >/dev/null 2>&1
 		    else
-			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers shutdown start|stop|set${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers shutdown start|stop|set|enable|disable${RESET}"
 		    fi
 		else
-		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers shutdown start|stop|set${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft timers shutdown start|stop|set|enable|disable${RESET}"
 		fi
 		;;
 	    stop)
@@ -645,8 +699,12 @@ if [ ! -z $1 ]; then
 			sudo sed -i 's/.*OnActiveSec=.*/ OnActiveSec='$DISCONNECTION_POWEROFF_MINS'm/' /etc/systemd/system/shutdown.timer
 		    fi
 		    if [ ! -f /tmp/android_device ]; then
-			sudo systemctl start shutdown.timer >/dev/null 2>&1
-			sudo systemctl start disconnect.timer >/dev/null 2>&1
+			if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
+			    sudo systemctl start shutdown.timer >/dev/null 2>&1
+			fi
+			if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
+			    sudo systemctl start disconnect.timer >/dev/null 2>&1
+			fi
 		    fi
 		    cs_systemro
 		fi
@@ -783,6 +841,35 @@ if [ ! -z $1 ]; then
 		    fi
 		else
 		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio allo boss|piano${RESET}"
+		fi
+		;;
+	    iqaudio)
+		if [ ! -z $3 ]; then
+		    if [ $3 == "dacplus" ] || [ $3 == "daczero" ] || [ $3 == "dacpro" ]; then
+			cs_bootrw
+			cs_audio_iqaudio "dacplus"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "digiampplus" ]; then
+			cs_bootrw
+			cs_audio_iqaudio "digiampplus"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "digiampplusauto" ]; then
+			cs_bootrw
+			cs_audio_iqaudio "digiampplusauto"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "digiplus" ]; then
+			cs_bootrw
+			cs_audio_iqaudio "digiplus"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    else
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio iqaudio dacplus|daczero|dacpro|digiampplus|digiampplusauto|digiplus${RESET}"
+		    fi
+		else
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio iqaudio dacplus|daczero|dacpro|digiampplus|digiampplusauto|digiplus${RESET}"
 		fi
 		;;
 	    clean)
@@ -1849,6 +1936,13 @@ else
     echo "    |- allo"
     echo "          |- boss             - Allo Boss DAC"
     echo "          |- piano            - Allo Piano DAC"
+    echo "    |- iqaudio"
+    echo "           |- dacplus         - IQaudIO Pi-DAC+"
+    echo "           |- daczero         - IQaudIO Pi-DACZero"
+    echo "           |- dacpro          - IQaudIO Pi-DAC PRO"
+    echo "           |- digiampplus     - IQaudIO Pi-DigiAMP+"
+    echo "           |- digiampplusauto - IQaudIO Pi-DigiAMP+ (Automute)"
+    echo "           |- digiplus        - IQaudIO Pi-Digi+"
     echo "    |- clean                  - Remove known configured boards including rpi audio"
     echo "    |- volume"
     echo "            |- set x          - Set audio volume to x % (0-100)"
