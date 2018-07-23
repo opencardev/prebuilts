@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=0.9.9
+version=1.0.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -908,9 +908,6 @@ if [ ! -z $1 ]; then
 			capvolume=$(pactl list sources | grep -A8 $pulsedevicecap | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			if [ ! -z $pulsedeviceplay ] && [ ! -z $volume ] && [ ! -z $pulsedevicecap ] && [ ! -z $capvolume ]; then
 			    cs_bootrw
-			    alsactl -f /tmp/alsactl.state store
-			    sudo cp -f /tmp/alsactl.state /boot/crankshaft/alsactl.state
-			    cs_echo "Alsa state saved"
 			    sudo sh -c 'echo "'$volume'" > /boot/crankshaft/volume'
 			    cs_echo "Saving volume done"
 			    sudo sh -c 'echo "'$capvolume'" > /boot/crankshaft/capvolume'
@@ -920,30 +917,6 @@ if [ ! -z $1 ]; then
 			    cs_echo "Saving volume skipped..."
 			fi
 		    elif [ $3 == "restore" ]; then
-			cs_bootrw
-			if [ -f /boot/crankshaft/alsactl.state ]; then
-			    #kill pa if running
-			    CHECK=$(ps -ax | grep pulseaudio | grep -v grep | tail -n1 | awk {'print $1'})
-			    if [ -z $CHECK ]; then
-				cs_echo "Pulseaidio killed."
-				sudo killall pulseaudio
-			    fi
-			    alsactl -f /boot/crankshaft/alsactl.state restore
-			    cs_echo "Alsa state restored"
-			else
-			    cs_echo "No alsa state file to restored"
-			fi
-			#start pa if not running
-			CHECK=$(ps -ax | grep pulseaudio | grep -v grep | tail -n1 | awk {'print $1'})
-			if [ -z $CHECK ]; then
-			    cs_echo "Starting Pulseaidio."
-			    pulseaudio --start --log-target syslog
-			fi
-			CHECK_PA_USER=$(pactl info | grep 'User Name' | cut -d: -f2 | sed 's/ //g')
-			if [ "$CHECK_PA_USER" != "pi" ]; then
-			    cs_echo "Give pulseaidio 2sec to become ready."
-			    sleep 2
-			fi
 			volume=$(cat /boot/crankshaft/volume)
 			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			if [ ! -z $pulsedeviceplay ] && [ ! -z $volume ]; then
@@ -967,12 +940,31 @@ if [ ! -z $1 ]; then
 			else
 			    cs_echo "Restoring capture volume skipped..."
 			fi
-			cs_bootro
 		    else
-    			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio volume set|get|up|down|save|restore${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio volume set|get|up|down|save|restore${RESET}"
+		    fi
+		fi
+		;;
+	    alsastate)
+		if [ ! -z $3 ]; then
+		    if [ $3 == "save" ]; then
+			cs_bootrw
+			alsactl -f /tmp/alsactl.state store
+			sudo cp -f /tmp/alsactl.state /boot/crankshaft/alsactl.state
+			cs_echo "Alsa state saved"
+			cs_bootro
+		    elif [ $3 == "restore" ]; then
+			if [ -f /boot/crankshaft/alsactl.state ]; then
+			    alsactl -f /boot/crankshaft/alsactl.state restore
+			    cs_echo "Alsa state restored"
+			else
+			    cs_echo "No alsa state file to restored"
+			fi
+		    else
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio alsastate save|restore${RESET}"
 		    fi
 		else
-    		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio volume set|get|up|down|save|restore${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio alsastate save|restore${RESET}"
 		fi
 		;;
 	    *)
@@ -1949,8 +1941,11 @@ else
     echo "            |- get            - Get current audio volume in %"
     echo "            |- up             - Increase audio volume by 5%"
     echo "            |- down           - Decrease audio volume by 5%"
-    echo "            |- save           - Save current alsa state & audio volumes"
-    echo "            |- restore        - Restore saved alsa state & audio volumes"
+    echo "            |- save           - Save current audio volumes"
+    echo "            |- restore        - Restore saved audio volumes"
+    echo "    |- alsastate"
+    echo "               |- save        - Save current alsa state"
+    echo "               |- restore     - Restore saved alsa state"
     echo ""
     echo "settings                      Handle Openauto Settings"
     echo "       |- save                - Save Openauto.ini"
@@ -2021,4 +2016,3 @@ else
 fi
 
 exit 0
-
