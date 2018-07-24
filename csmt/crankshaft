@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.0
+version=1.0.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -401,45 +401,79 @@ if [ ! -z $1 ]; then
     if [ $1 == "brightness" ]; then
         case $2 in
 	    save)
-		if [ -f ${BRIGHTNESS_FILE} ]; then
+		if [ -f ${BRIGHTNESS_FILE} ] || [ -f /tmp/custombrightness ]; then
 		    cs_bootrw
                     if [ -f /tmp/night_mode_enabled ]; then
-                        sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
-                        cs_echo "Brightness Level Night Saved"
+			if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    cs_echo "Custom Brightness Level Night Saved"
+			else
+			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    cs_echo "Brightness Level Night Saved"
+			fi
                     else
-                        sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
-                        cs_echo "Brightness Level Day Saved"
+			if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_STORE_FILE}
+			    cs_echo "Custom Brightness Level Day Saved"
+			else
+			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
+			    cs_echo "Brightness Level Day Saved"
+			fi
 		    fi
-
 		    cs_bootro
 		else
-        	    cs_echo "No device brightness file present"
-
+		    cs_echo "No device brightness file present"
 		fi
 		;;
 	    restore)
-		if [ -f ${BRIGHTNESS_FILE} ]; then
+		if [ -f ${BRIGHTNESS_FILE} ] || [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
 		    if [ -f /tmp/night_mode_enabled ]; then
 		        if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
-			    LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-			    echo ${LVL} > ${BRIGHTNESS_FILE}
-			    cs_echo "Brightness Level Night Restored"
+			    if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+				echo ${LVL} > /tmp/custombrightness
+				$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+				cs_echo "Custom Brightness Level Night Restored"
+			    else
+				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+				echo ${LVL} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Night Restored"
+			    fi
 		        else
-			    echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-			    cs_echo "Brightness Level Night Restored by default value"
+			    if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+				echo ${BR_MAX} > /tmp/custombrightness
+				$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+				cs_echo "Custom Brightness Level Night Restored by default value"
+			    else
+				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Night Restored by default value"
+			    fi
 		        fi
                     else
 		        if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
-			    LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-			    echo ${LVL} > ${BRIGHTNESS_FILE}
-			    cs_echo "Brightness Level Day Restored"
+			    if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
+				echo ${LVL} > /tmp/custombrightness
+				$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+				cs_echo "Custom Brightness Level Day Restored"
+			    else
+				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
+				echo ${LVL} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Day Restored"
+			    fi
 		        else
-			    echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-			    cs_echo "Brightness Level Day Restored by default value"
+			    if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+				echo ${BR_MAX} > /tmp/custombrightness
+				$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+				cs_echo "Custom Brightness Level Day Restored by default value"
+			    else
+				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+				cs_echo "Brightness Level Day Restored by default value"
+			    fi
 		        fi
                     fi
 		else
-    		    cs_echo "No device brightness file present"
+		    cs_echo "No device brightness file present"
 		fi
 		;;
 	    up)
@@ -448,6 +482,13 @@ if [ ! -z $1 ]; then
 		    if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
 			echo $((${LVL} + ${BR_STEP})) > ${BRIGHTNESS_FILE}
 			cs_echo "Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
+		    fi
+		elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+		    LVL=`cat /tmp/custombrightness`
+		    if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
+			echo $((${LVL} + ${BR_STEP})) > /tmp/custombrightness
+			$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+			cs_echo "Custom Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
 		    fi
 		else
     		    cs_echo "No device brightness file present"
@@ -460,6 +501,13 @@ if [ ! -z $1 ]; then
 			echo $((${LVL} - ${BR_STEP})) > ${BRIGHTNESS_FILE}
 			cs_echo "Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
 		    fi
+		elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+		    LVL=`cat /tmp/custombrightness`
+		    if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
+			echo $((${LVL} - ${BR_STEP})) > /tmp/custombrightness
+			$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+			cs_echo "Custom Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
+		    fi
 		else
     		    cs_echo "No device brightness file present"
 		fi
@@ -468,6 +516,10 @@ if [ ! -z $1 ]; then
 		if [ -f ${BRIGHTNESS_FILE} ]; then
 		    echo ${BR_MIN} > ${BRIGHTNESS_FILE}
 		    cs_echo "Brightness Level Set To Min: ${BR_MIN}"
+		elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+		    echo ${BR_MIN} > /tmp/custombrightness
+		    $CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+		    cs_echo "Custom Brightness Level Set To Min: ${BR_MIN}"
 		else
 		    cs_echo "No device brightness file present"
 		fi
@@ -476,6 +528,10 @@ if [ ! -z $1 ]; then
 		if [ -f ${BRIGHTNESS_FILE} ]; then
 		    echo ${BR_MAX} > ${BRIGHTNESS_FILE}
 		    cs_echo "Brightness Level Set To Max: ${BR_MAX}"
+		elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+		    echo ${BR_MAX} > /tmp/custombrightness
+		    $CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+		    cs_echo "Custom Brightness Level Set To Max: ${BR_MAX}"
 		else
 		    cs_echo "No device brightness file present"
 		fi
@@ -483,12 +539,19 @@ if [ ! -z $1 ]; then
 	    get)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "location" ]; then
-			echo ${BRIGHTNESS_FILE}
+			if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+			    echo $( cat /tmp/custombrightness)
+			else
+			    echo ${BRIGHTNESS_FILE}
+			fi
 		    elif [ $3 == "level" ]; then
 			if [ -f ${BRIGHTNESS_FILE} ]; then
 			    # get current brightness level
 			    LVL=`cat ${BRIGHTNESS_FILE}`
-			    cs_echo "Cutrent Brightness Level: $LVL"
+			    cs_echo "Current Brightness Level: $LVL"
+			elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+			    LVL=`cat /tmp/custombrightness`
+			    cs_echo "Custom current Brightness Level: $LVL"
 			else
     			    cs_echo "No device brightness file present"
 			fi
@@ -504,6 +567,10 @@ if [ ! -z $1 ]; then
 		    if [ -f ${BRIGHTNESS_FILE} ]; then
 			echo $3 > ${BRIGHTNESS_FILE}
 			cs_echo "Brightness Level Set To Min: $3"
+		    elif [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+			echo $3 > /tmp/custombrightness
+			$CUSTOM_BRIGHTNESS_COMMAND $( cat /tmp/custombrightness)
+			cs_echo "Custom Brightness Level Set To Min: $3"
 		    else
 			cs_echo "No device brightness file present"
 		    fi
