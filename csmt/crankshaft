@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.1
+version=1.0.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1842,6 +1842,7 @@ if [ ! -z $1 ]; then
 
     #debuglog
     if [ $1 == "debuglog" ]; then
+        touch /tmp/debug_in_progress
 	cs_bootrw
 	cs_echo "Creating logs - Please wait..."
 	sudo rm -rf /tmp/debuglogs >/dev/null 2>&1
@@ -1864,7 +1865,17 @@ if [ ! -z $1 ]; then
 	sudo cp -f /var/log/user.log /tmp/debuglogs/
 	sudo cp -f /etc/asound.conf /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.asoundrc /tmp/debuglogs/ >/dev/null 2>&1
-	sudo cat /proc/asound/cards > /tmp/debuglogs/soundcards
+	sudo cat /proc/asound/cards > /tmp/debuglogs/alsa_soundcards_kernel
+	pactl list sinks > /tmp/debuglogs/pa_soundcards
+        sudo cp -f /tmp/get_default_input /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/get_default_output /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/get_inputs /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/get_outputs /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/set_mic /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/set_soundcard /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/autoapp_helper_command /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /tmp/return_value /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /etc/pulse/* /tmp/debuglogs/ >/dev/null 2>&1
 	sudo /usr/bin/systemd-analyze plot > /tmp/debuglogs/startsequence.svg
 
 	sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
@@ -1929,6 +1940,7 @@ if [ ! -z $1 ]; then
 	sudo rm -rf /boot/crankshaft/debug.zip >/dev/null 2>&1
 	sudo zip -j /boot/crankshaft/debug.zip /tmp/debuglogs/* >/dev/null 2>&1
 	cs_bootro
+        rm -rf /tmp/debug_in_progress
     fi
 
     #version
