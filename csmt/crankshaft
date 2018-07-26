@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.2
+version=1.0.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -42,6 +42,7 @@ function cs_audio_clean() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -55,6 +56,7 @@ function cs_audio_rpi() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -71,13 +73,16 @@ function cs_audio_hifiberry() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=hifiberry-'$1 >> /boot/config.txt"
+    sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+    cs_check_i2c
 }
 
 function cs_audio_audioinjector() {
@@ -87,13 +92,16 @@ function cs_audio_audioinjector() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=audioinjector-'$1 >> /boot/config.txt"
+    sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+    cs_check_i2c
 }
 function cs_audio_audioinjector_controls() {
     TEMPSTATE="/tmp/alsa.dummy"
@@ -273,13 +281,16 @@ function cs_audio_allo() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio,slave' >> /boot/config.txt"
+    sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+    cs_check_i2c
 }
 
 function cs_audio_iqaudio() {
@@ -289,6 +300,7 @@ function cs_audio_iqaudio() {
     sudo sed -i 's/^dtoverlay=audioinjector.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=allo.*//' /boot/config.txt
     sudo sed -i 's/^dtoverlay=iqaudio.*//' /boot/config.txt
+    sudo sed -i 's/^dtparam=i2s=on.*//' /boot/config.txt
     sudo sed -i 's/^# Enable audio (loads snd_bcm2835).*//' /boot/config.txt
     sudo sed -i 's/^# Audio Setup.*//' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /boot/config.txt
@@ -303,7 +315,9 @@ function cs_audio_iqaudio() {
     elif [ "$1" == "digiplus" ]; then
         sudo sh -c "echo 'dtoverlay=iqaudio-digi-wm8804-audio' >> /boot/config.txt"
     fi
+    sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
+    cs_check_i2c
 }
 
 # RTC functions
@@ -311,16 +325,13 @@ function cs_rtc() {
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^# RTC Setup.*//' /boot/config.txt
     sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
-    sudo sed -i '/dtoverlay=i2c_arm=/d' /boot/config.txt
-    sudo sed -i '/i2c*/d' /etc/modules
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /etc/modules
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# RTC Setup' >> /boot/config.txt"
-    sudo sh -c "echo 'dtoverlay=i2c_arm=on' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=i2c-rtc,'$1 >> /boot/config.txt"
-    sudo sh -c "echo 'i2c-dev' >> /etc/modules"
     sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=1/' /boot/crankshaft/crankshaft_env.sh
+    cs_check_i2c
     sudo systemctl disable fake-hwclock.service >/dev/null 2>&1
     sudo systemctl enable hwclock-load.service >/dev/null 2>&1
     sudo systemctl enable hwclock-save.service >/dev/null 2>&1
@@ -330,6 +341,19 @@ function cs_rtc() {
     else
 	sudo dpkg-reconfigure tzdata
     fi
+}
+
+function cs_check_i2c() {
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sed -i '/dtoverlay=i2c_arm=/d' /boot/config.txt
+    sudo sed -i 's/^# I2C Bus.*//' /boot/config.txt
+    sudo sed -i '/i2c*/d' /etc/modules
+    sudo sed -i '/./,/^$/!d' /boot/config.txt
+    sudo sed -i '/./,/^$/!d' /etc/modules
+    sudo sh -c "echo '' >> /boot/config.txt"
+    sudo sh -c "echo '# I2C Bus' >> /boot/config.txt"
+    sudo sh -c "echo 'dtoverlay=i2c_arm=on' >> /boot/config.txt"
+    sudo sh -c "echo 'i2c-dev' >> /etc/modules"
 }
 
 # Display functions
@@ -1264,12 +1288,10 @@ if [ ! -z $1 ]; then
 		#delete clock
 		sudo sed -i 's/^# RTC Setup.*//' /boot/config.txt
     		sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
-    		sudo sed -i '/dtoverlay=i2c_arm=/d' /boot/config.txt
 		sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=0/' /boot/crankshaft/crankshaft_env.sh
-    		sudo sed -i '/i2c*/d' /etc/modules
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
-		sudo sed -i '/./,/^$/!d' /etc/modules
 		sudo sed -i '/./,/^$/!d' /boot/crankshaft/crankshaft_env.sh
+		cs_check_i2c
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
 		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
