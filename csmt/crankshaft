@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.3
+version=1.0.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -287,7 +287,7 @@ function cs_audio_allo() {
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# Audio Setup' >> /boot/config.txt"
-    sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio,slave' >> /boot/config.txt"
+    sudo sh -c "echo 'dtoverlay=allo-'$1'-dac-pcm512x-audio' >> /boot/config.txt"
     sudo sh -c "echo 'dtparam=i2s=on' >> /boot/config.txt"
     sudo sh -c "rm -f /boot/crankshaft/alsactl.state"
     cs_check_i2c
