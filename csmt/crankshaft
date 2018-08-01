@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.5
+version=1.0.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1481,80 +1481,70 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
-		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
-		if [ -f /etc/udev/rules.d/51-android.master ]; then
-		    LOCAL=`wc -c /etc/udev/rules.d/51-android.master | awk '{print $1}'`
-		else
-		    LOCAL=0
-		fi
+		wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+                REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
+                cs_echo "New file:     $REMOTE"
+                cs_echo "Current file: $LOCAL"
 		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo "udev rules are up to date."
+		    cs_echo ""
+		    cs_echo "ABORT: udev rules are up to date."
 		else
                     cs_systemrw
 		    # get source file
-		    sudo wget --no-check-certificate -O /etc/udev/rules.d/51-android.master https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules
-		    # check download
-		    LOCAL=`wc -c /etc/udev/rules.d/51-android.master | awk '{print $1}'`
-		    if [ "$REMOTE" == "$LOCAL" ]; then
-			# File which will be transformed
-			DEST=/etc/udev/rules.d/51-android.rules
-			sudo touch /etc/udev/rules.d/51-android.rules
-			sudo chmod 666 /etc/udev/rules.d/51-android.rules
-			# add master stuff
-			echo '' > $DEST
-			echo '# Skip storage devices' >> $DEST
-                        echo 'KERNEL=="sd*", GOTO="SKIP_DEVICE"' >> $DEST
-                        echo 'KERNEL=="sg*", GOTO="SKIP_DEVICE"' >> $DEST
-                        echo 'SUBSYSTEM!="usb", GOTO="SKIP_DEVICE"' >> $DEST
-			cat /etc/udev/rules.d/51-android.master >> $DEST
-			# Add action
-			sudo sed -i 's/GROUP="plugdev"$/GROUP="plugdev", RUN+="\/opt\/crankshaft\/usb_action.sh add '\'\$env\{ID_MODEL\}\'' '\''%E\{DEVNAME\}'\''"/' $DEST
-			# Add disconnect action
-			echo '' >> $DEST
-			echo '# Disconnect action' >> $DEST
-			echo 'SUBSYSTEM=="usb", ACTION=="remove", RUN+="/opt/crankshaft/usb_action.sh remove '\'\$env\{ID_MODEL\}\'' '\''%E{DEVNAME}'\''"' >> $DEST
-			# Add disconnect action
-			echo '' >> $DEST
-			echo '# Skip action' >> $DEST
-			echo 'LABEL="SKIP_DEVICE"' >> $DEST
-			echo '' >> $DEST
-			# Reload rules
-			sudo udevadm control --reload-rules
-			cs_echo "OK: udev rules updated."
-		    else
-			sudo rm /etc/udev/rules.d/51-android.master
-			cs_echo "Fail: udev rules not updated."
-		    fi
+		    sudo wget -q --no-check-certificate -O /etc/udev/rules.d/51-android.master https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules
+		    # File which will be transformed
+		    DEST=/etc/udev/rules.d/51-android.rules
+		    sudo touch /etc/udev/rules.d/51-android.rules
+		    sudo chmod 666 /etc/udev/rules.d/51-android.rules
+		    # add master stuff
+		    echo '' > $DEST
+		    echo '# Skip storage devices' >> $DEST
+                    echo 'KERNEL=="sd*", GOTO="SKIP_DEVICE"' >> $DEST
+                    echo 'KERNEL=="sg*", GOTO="SKIP_DEVICE"' >> $DEST
+                    echo 'SUBSYSTEM!="usb", GOTO="SKIP_DEVICE"' >> $DEST
+		    cat /etc/udev/rules.d/51-android.master >> $DEST
+		    # Add action
+		    sudo sed -i 's/GROUP="plugdev"$/GROUP="plugdev", RUN+="\/opt\/crankshaft\/usb_action.sh add '\'\$env\{ID_MODEL\}\'' '\''%E\{DEVNAME\}'\''"/' $DEST
+		    # Add disconnect action
+		    echo '' >> $DEST
+		    echo '# Disconnect action' >> $DEST
+		    echo 'SUBSYSTEM=="usb", ACTION=="remove", RUN+="/opt/crankshaft/usb_action.sh remove '\'\$env\{ID_MODEL\}\'' '\''%E{DEVNAME}'\''"' >> $DEST
+		    # Add disconnect action
+		    echo '' >> $DEST
+		    echo '# Skip action' >> $DEST
+		    echo 'LABEL="SKIP_DEVICE"' >> $DEST
+		    echo '' >> $DEST
+		    # Reload rules
+		    sudo udevadm control --reload-rules
+		    cs_echo ""
+		    cs_echo "OK: udev rules updated."
                     cs_systemro
 		fi
 		;;
 	    csmt)
-		REMOTE=`wget --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}'`
-		if [ -f /usr/local/bin/crankshaft ]; then
-		    LOCAL=`wc -c /usr/local/bin/crankshaft | awk '{print $1}'`
-		else
-		    LOCAL=0
-		fi
+		wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+                REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
+                cs_echo "New file:     $REMOTE"
+                cs_echo "Current file: $LOCAL"
 		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo "crankshaft management tool is up to date."
+		    cs_echo ""
+		    cs_echo "ABORT: crankshaft management tool is up to date."
 		else
                     cs_systemrw
                     sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
 		    # get source file
-		    sudo wget --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+		    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
 		    # check download
 		    LOCAL=`wc -c /usr/local/bin/crankshaft.update | awk '{print $1}'`
-		    if [ "$REMOTE" == "$LOCAL" ]; then
-			sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
-			sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
-			sudo chmod 777 /usr/local/bin/crankshaft
-			sudo rm /usr/local/bin/crankshaft.update
-			cs_echo "OK: crankshaft management tool updated."
-		    else
-			sudo rm /usr/local/bin/crankshaft.update
-			cs_echo "Fail: crankshaft management tool not updated."
-		    fi
+		    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
+		    sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
+		    sudo chmod 777 /usr/local/bin/crankshaft
+		    sudo rm /usr/local/bin/crankshaft.update
+		    cs_echo ""
+		    cs_echo "OK: crankshaft management tool updated."
                     cs_systemro
 		fi
 		;;
