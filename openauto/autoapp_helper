@@ -218,7 +218,11 @@ if [ "${array[0]}" == "setparams" ]; then
         crankshaft timers shutdown disable
     else
         crankshaft timers shutdown enable
-        crankshaft timers shutdown start
+        if [ ! -f /tmp/dev_mode_enabled ]; then
+            crankshaft timers shutdown start
+        else
+            crankshaft timers shutdown stop
+        fi
     fi
 
     echo "${array[21]}" >> /tmp/autoapp_helper_command
@@ -226,7 +230,11 @@ if [ "${array[0]}" == "setparams" ]; then
         crankshaft timers disconnect disable
     else
         crankshaft timers disconnect enable
-        crankshaft timers disconnect start
+        if [ ! -f /tmp/dev_mode_enabled ]; then
+            crankshaft timers disconnect start
+        else
+            crankshaft timers disconnect stop
+        fi
     fi
     # clean buffers
     sync
