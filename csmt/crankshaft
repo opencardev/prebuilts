@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.8
+version=1.0.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1486,6 +1486,10 @@ if [ ! -z $1 ]; then
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
                 cs_echo "Current file: $LOCAL"
+                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+                    cs_echo "ABORT: checksum fail."
+                    exit 1
+                fi
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo ""
 		    cs_echo "ABORT: udev rules are up to date."
@@ -1528,6 +1532,10 @@ if [ ! -z $1 ]; then
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
                 cs_echo "Current file: $LOCAL"
+                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+                    cs_echo "ABORT: checksum fail."
+                    exit 1
+                fi
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo ""
 		    cs_echo "ABORT: crankshaft management tool is up to date."
