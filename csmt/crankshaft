@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.7
+version=1.0.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1996,8 +1996,8 @@ if [ ! -z $1 ]; then
 
 	# Finish
 	sudo chmod 666 /tmp/debuglogs/*
-	sudo rm -rf /boot/crankshaft/debug.zip >/dev/null 2>&1
-	sudo zip -j /boot/crankshaft/debug.zip /tmp/debuglogs/* >/dev/null 2>&1
+	sudo rm -rf /boot/debug.zip >/dev/null 2>&1
+	sudo zip -j /boot/debug.zip /tmp/debuglogs/* >/dev/null 2>&1
 	cs_bootro
         rm -rf /tmp/debug_in_progress
     fi
