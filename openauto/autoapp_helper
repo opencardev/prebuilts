@@ -404,7 +404,16 @@ if [ "$1" == "restorevolumes" ]; then
         pactl set-sink-mute $pulsedeviceplay 0
         # set volume
         if [ -f /boot/crankshaft/volume ]; then
-            pactl set-sink-volume $pulsedeviceplay $(cat /boot/crankshaft/volume)%
+            volume=$(cat /boot/crankshaft/volume)
+            # check min volume
+            if [ $volume -lt ${STARTUP_VOL_MIN} ];then
+                volume = ${STARTUP_VOL_MIN}
+            fi
+            # check max volume
+            if [ $volume -gt ${STARTUP_VOL_MAX} ];then
+                volume = ${STARTUP_VOL_MAX}
+            fi
+            pactl set-sink-volume $pulsedeviceplay $volume%
         else
             pactl set-sink-volume $pulsedeviceplay 50%
         fi
@@ -417,7 +426,16 @@ if [ "$1" == "restorevolumes" ]; then
         pactl set-source-mute $pulsedevicecap 0
         # set volume
         if [ -f /boot/crankshaft/capvolume ]; then
-            pactl set-source-volume $pulsedevicecap $(cat /boot/crankshaft/capvolume)%
+            capvolume=$(cat /boot/crankshaft/capvolume)
+            # check min volume
+            if [ $capvolume -lt ${STARTUP_VOL_MIN} ];then
+                capvolume = ${STARTUP_VOL_MIN}
+            fi
+            # check max volume
+            if [ $capvolume -gt ${STARTUP_VOL_MAX} ];then
+                capvolume = ${STARTUP_VOL_MAX}
+            fi
+            pactl set-source-volume $pulsedevicecap $capvolume%
         else
             pactl set-source-volume $pulsedevicecap 50%
         fi

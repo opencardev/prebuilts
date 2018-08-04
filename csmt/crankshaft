@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.0.9
+version=1.1.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1013,6 +1013,14 @@ if [ ! -z $1 ]; then
 			if [ ! -z $pulsedeviceplay ] && [ ! -z $volume ]; then
 			    # unmute
 			    pactl set-sink-mute $pulsedeviceplay 0
+                            # check min volume
+                            if [ $volume -lt ${STARTUP_VOL_MIN} ];then
+                                volume = ${STARTUP_VOL_MIN}
+                            fi
+                            # check max volume
+                            if [ $volume -gt ${STARTUP_VOL_MAX} ];then
+                                volume = ${STARTUP_VOL_MAX}
+                            fi
 			    # set volume
 			    pactl set-sink-volume $pulsedeviceplay $volume%
 			    cs_echo "Restoring volume done"
@@ -1025,6 +1033,14 @@ if [ ! -z $1 ]; then
 			if [ ! -z $pulsedevicecap ] && [ ! -z $capvolume ]; then
 			    # unmute
 			    pactl set-source-mute $pulsedevicecap 0
+                            # check min volume
+                            if [ $capvolume -lt ${STARTUP_VOL_MIN} ];then
+                                capvolume = ${STARTUP_VOL_MIN}
+                            fi
+                            # check max volume
+                            if [ $capvolume -gt ${STARTUP_VOL_MAX} ];then
+                                capvolume = ${STARTUP_VOL_MAX}
+                            fi
 			    # set volume
 			    pactl set-source-volume $pulsedevicecap $capvolume%
 			    cs_echo "Restoring capture volume done"
