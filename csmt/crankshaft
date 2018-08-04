@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.0
+version=1.1.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1015,11 +1015,11 @@ if [ ! -z $1 ]; then
 			    pactl set-sink-mute $pulsedeviceplay 0
                             # check min volume
                             if [ $volume -lt ${STARTUP_VOL_MIN} ];then
-                                volume = ${STARTUP_VOL_MIN}
+                                volume=${STARTUP_VOL_MIN}
                             fi
                             # check max volume
                             if [ $volume -gt ${STARTUP_VOL_MAX} ];then
-                                volume = ${STARTUP_VOL_MAX}
+                                volume=${STARTUP_VOL_MAX}
                             fi
 			    # set volume
 			    pactl set-sink-volume $pulsedeviceplay $volume%
@@ -1035,11 +1035,11 @@ if [ ! -z $1 ]; then
 			    pactl set-source-mute $pulsedevicecap 0
                             # check min volume
                             if [ $capvolume -lt ${STARTUP_VOL_MIN} ];then
-                                capvolume = ${STARTUP_VOL_MIN}
+                                capvolume=${STARTUP_VOL_MIN}
                             fi
                             # check max volume
                             if [ $capvolume -gt ${STARTUP_VOL_MAX} ];then
-                                capvolume = ${STARTUP_VOL_MAX}
+                                capvolume=${STARTUP_VOL_MAX}
                             fi
 			    # set volume
 			    pactl set-source-volume $pulsedevicecap $capvolume%
