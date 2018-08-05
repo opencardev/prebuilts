@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.1
+version=1.1.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1985,11 +1985,14 @@ if [ ! -z $1 ]; then
 	cs_echo ""
 	cs_echo "Blanking wifi passwords..."
 	cs_echo ""
-	sed -i 's/WIFI_PSK=.*/WIFI_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
-	sed -i 's/HOTSPOT_PSK=.*/HOTSPOT_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
-	sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxxxxxxxx/' /tmp/debuglogs/hostapd.conf
-	sed -i 's/psk=.*/psk=xxxxxxxxx/' /tmp/debuglogs/wpa_supplicant.conf
-
+	sudo sed -i 's/WIFI_PSK=.*/WIFI_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
+	sudo sed -i 's/HOTSPOT_PSK=.*/HOTSPOT_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
+	sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxxxxxxxx/' /tmp/debuglogs/hostapd.conf
+	sudo sed -i 's/psk=.*/psk=xxxxxxxxx/' /tmp/debuglogs/wpa_supplicant.conf
+	if [ ! -z $WIFI_PSK ]; then
+	    sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+	    sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+	fi
 	sudo systemctl daemon-reload
 	sudo systemctl list-units --type=service --no-pager --all | grep 'Crankshaft\|UNIT' | awk {'print $1'} | grep -e '.service' -e '.target' > /tmp/tmp.log
 	while read -r line; do
