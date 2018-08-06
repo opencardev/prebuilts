@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.4
+version=1.1.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1513,6 +1513,10 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
+                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
+                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
+                    exit 1
+                fi
 		wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
@@ -1559,6 +1563,10 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
+                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
+                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
+                    exit 1
+                fi
 		wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
                 REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
