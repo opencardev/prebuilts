@@ -460,4 +460,8 @@ if [ "$1" == "custombrightness" ]; then
     fi
 fi
 
+if [ "$1" == "startkodimonitor" ]; then
+    sudo systemctl start kodimonitor
+fi
+
 exit 0
