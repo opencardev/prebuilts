@@ -396,7 +396,7 @@ if [ "$1" == "getparams" ]; then
 
     custombrightness=0
     if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-        custombrightness=1
+        custombrightness=${CUSTOM_BRIGHTNESS_COMMAND}
     fi
 
     hotspot_ssid=$(cat /etc/hostapd/hostapd.conf | grep '^ssid=' | cut -d= -f2)
