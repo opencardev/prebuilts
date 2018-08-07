@@ -193,10 +193,7 @@ if [ "${array[0]}" == "setparams" ]; then
         if [ "${array[19]}" == "Allo - Piano" ]; then
             /usr/local/bin/crankshaft audio allo piano
         fi
-        if [ "${array[19]}" == "Audioinjector - Zero" ]; then
-            /usr/local/bin/crankshaft audio audioinjector zero
-        fi
-        if [ "${array[19]}" == "Audioinjector - Stereo" ]; then
+        if [ "${array[19]}" == "Audioinjector - Zero/Stereo" ]; then
             /usr/local/bin/crankshaft audio audioinjector stereo
         fi
         if [ "${array[19]}" == "Hifiberry - DAC" ]; then
