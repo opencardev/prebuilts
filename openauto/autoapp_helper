@@ -169,57 +169,61 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sh -c 'echo "'${array[2]}'" > /boot/crankshaft/capvolume'
 
     # rtc setup
-    echo "${array[17]}" >> /tmp/autoapp_helper_command
-    echo "${array[18]}" >> /tmp/autoapp_helper_command
-    if [ "${array[17]}" == "none" ]; then
-        /usr/local/bin/crankshaft rtc disable
-    else
-        /usr/local/bin/crankshaft rtc ${array[17]} ${array[18]}
+    if [ ${array[29]} == "1" ]; then
+        echo "${array[17]}" >> /tmp/autoapp_helper_command
+        echo "${array[18]}" >> /tmp/autoapp_helper_command
+        if [ "${array[17]}" == "none" ]; then
+            /usr/local/bin/crankshaft rtc disable
+        else
+            /usr/local/bin/crankshaft rtc ${array[17]} ${array[18]}
+        fi
     fi
 
     # dac setup
-    echo "${array[19]}" >> /tmp/autoapp_helper_command
-    if [ "${array[19]}" == "Custom" ]; then
-        /usr/local/bin/crankshaft audio clean
-    fi
-    if [ "${array[19]}" == "Allo - Boss" ]; then
-        /usr/local/bin/crankshaft audio allo boss
-    fi
-    if [ "${array[19]}" == "Allo - Piano" ]; then
-        /usr/local/bin/crankshaft audio allo piano
-    fi
-    if [ "${array[19]}" == "Audioinjector - Zero" ]; then
-        /usr/local/bin/crankshaft audio audioinjector zero
-    fi
-    if [ "${array[19]}" == "Audioinjector - Stereo" ]; then
-        /usr/local/bin/crankshaft audio audioinjector stereo
-    fi
-    if [ "${array[19]}" == "Hifiberry - DAC" ]; then
-        /usr/local/bin/crankshaft audio hifiberry dac
-    fi
-    if [ "${array[19]}" == "Hifiberry - DAC Plus" ]; then
-        /usr/local/bin/crankshaft audio hifiberry dacplus
-    fi
-    if [ "${array[19]}" == "Hifiberry - DAC Digi" ]; then
-        /usr/local/bin/crankshaft audio hifiberry digi
-    fi
-    if [ "${array[19]}" == "Hifiberry - DAC Amp" ]; then
-        /usr/local/bin/crankshaft audio hifiberry amp
-    fi
-    if [ "${array[19]}" == "IQaudIO - Pi-DAC Plus/Pro/Zero" ]; then
-        /usr/local/bin/crankshaft audio iqaudio dacplus
-    fi
-    if [ "${array[19]}" == "IQaudIO - Pi-Digi Amp Plus" ]; then
-        /usr/local/bin/crankshaft audio iqaudio digiampplus
-    fi
-    if [ "${array[19]}" == "IQaudIO - Pi-Digi Amp Plus - Automute" ]; then
-        /usr/local/bin/crankshaft audio iqaudio digiampplusauto
-    fi
-    if [ "${array[19]}" == "IQaudIO - Pi-Digi Plus" ]; then
-        /usr/local/bin/crankshaft audio iqaudio digiplus
-    fi
-    if [ "${array[19]}" == "Raspberry Pi - Onboard" ]; then
-        /usr/local/bin/crankshaft audio rpi
+    if [ ${array[29]} == "1" ]; then
+        echo "${array[19]}" >> /tmp/autoapp_helper_command
+        if [ "${array[19]}" == "Custom" ]; then
+            /usr/local/bin/crankshaft audio clean
+        fi
+        if [ "${array[19]}" == "Allo - Boss" ]; then
+            /usr/local/bin/crankshaft audio allo boss
+        fi
+        if [ "${array[19]}" == "Allo - Piano" ]; then
+            /usr/local/bin/crankshaft audio allo piano
+        fi
+        if [ "${array[19]}" == "Audioinjector - Zero" ]; then
+            /usr/local/bin/crankshaft audio audioinjector zero
+        fi
+        if [ "${array[19]}" == "Audioinjector - Stereo" ]; then
+            /usr/local/bin/crankshaft audio audioinjector stereo
+        fi
+        if [ "${array[19]}" == "Hifiberry - DAC" ]; then
+            /usr/local/bin/crankshaft audio hifiberry dac
+        fi
+        if [ "${array[19]}" == "Hifiberry - DAC Plus" ]; then
+            /usr/local/bin/crankshaft audio hifiberry dacplus
+        fi
+        if [ "${array[19]}" == "Hifiberry - DAC Digi" ]; then
+            /usr/local/bin/crankshaft audio hifiberry digi
+        fi
+        if [ "${array[19]}" == "Hifiberry - DAC Amp" ]; then
+            /usr/local/bin/crankshaft audio hifiberry amp
+        fi
+        if [ "${array[19]}" == "IQaudIO - Pi-DAC Plus/Pro/Zero" ]; then
+            /usr/local/bin/crankshaft audio iqaudio dacplus
+        fi
+        if [ "${array[19]}" == "IQaudIO - Pi-Digi Amp Plus" ]; then
+            /usr/local/bin/crankshaft audio iqaudio digiampplus
+        fi
+        if [ "${array[19]}" == "IQaudIO - Pi-Digi Amp Plus - Automute" ]; then
+            /usr/local/bin/crankshaft audio iqaudio digiampplusauto
+        fi
+        if [ "${array[19]}" == "IQaudIO - Pi-Digi Plus" ]; then
+            /usr/local/bin/crankshaft audio iqaudio digiplus
+        fi
+        if [ "${array[19]}" == "Raspberry Pi - Onboard" ]; then
+            /usr/local/bin/crankshaft audio rpi
+        fi
     fi
 
     # Enable/Disable Timers
