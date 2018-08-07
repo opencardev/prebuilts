@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.6
+version=1.1.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -285,7 +285,7 @@ function cs_audio_audioinjector_controls() {
     echo "		}" >> $TEMPSTATE
     echo "	}" >> $TEMPSTATE
     echo "}" >> $TEMPSTATE
-    sudo sh -c "cp -f $TEMPSTATE /boot/crankshaft/alsactl.state"
+    sudo sh -c "cp -f $TEMPSTATE /boot/crankshaft/alsactl.firstinit"
 }
 
 function cs_audio_allo() {
@@ -1079,11 +1079,18 @@ if [ ! -z $1 ]; then
 			cs_echo "Alsa state saved"
 			cs_bootro
 		    elif [ $3 == "restore" ]; then
-			if [ -f /boot/crankshaft/alsactl.state ]; then
-			    alsactl -f /boot/crankshaft/alsactl.state restore
-			    cs_echo "Alsa state restored"
+			if [ -f /boot/crankshaft/alsactl.firstinit ]; then
+			    alsactl -f /boot/crankshaft/alsactl.firstinit restore
+			    cs_bootrw
+			    sudo rm -f /boot/crankshaft/alsactl.firstinit
+			    cs_bootro
 			else
-			    cs_echo "No alsa state file to restored"
+			    if [ -f /boot/crankshaft/alsactl.state ]; then
+				alsactl -f /boot/crankshaft/alsactl.state restore
+				cs_echo "Alsa state restored"
+			    else
+				cs_echo "No alsa state file to restored"
+			    fi
 			fi
 		    else
 			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio alsastate save|restore${RESET}"
