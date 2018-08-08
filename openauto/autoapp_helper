@@ -457,14 +457,16 @@ if [ "$1" == "restorevolumes" ]; then
     fi
 fi
 
-if [ "$1" == "custombrightness" ]; then
-    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-        ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness) &
-    fi
+if [ "$1" == "getbrightnessvalues" ]; then
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#" > /tmp/br_values
 fi
 
 if [ "$1" == "startkodimonitor" ]; then
     sudo systemctl start kodimonitor
+fi
+
+if [ "$1" == "startcustombrightness" ]; then
+    sudo systemctl start custombrightness
 fi
 
 exit 0
