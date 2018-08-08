@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.8
+version=1.1.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -469,6 +469,9 @@ if [ ! -z $1 ]; then
 		        if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
 			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+				if [ -z ${LVL} ]; then
+				    LVL=${BR_MAX}
+				fi
 				echo ${LVL} > /tmp/custombrightness
 				sudo chmod 666 /tmp/custombrightness
 				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -479,6 +482,9 @@ if [ ! -z $1 ]; then
 				cs_echo "Custom Brightness Level Night Restored"
 			    else
 				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+				if [ -z ${LVL} ]; then
+				    LVL=${BR_MAX}
+				fi
 				echo ${LVL} > ${BRIGHTNESS_FILE}
 				cs_echo "Brightness Level Night Restored"
 			    fi
@@ -501,6 +507,9 @@ if [ ! -z $1 ]; then
 		        if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
 			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
+				if [ -z ${LVL} ]; then
+				    LVL=${BR_MAX}
+				fi
 				echo ${LVL} > /tmp/custombrightness
 				sudo chmod 666 /tmp/custombrightness
 				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -537,6 +546,9 @@ if [ ! -z $1 ]; then
 	    up)
 		if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 		    LVL=`cat /tmp/custombrightness`
+		    if [ -z ${LVL} ]; then
+			LVL=${BR_MAX}
+		    fi
 		    if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
 			echo $((${LVL} + ${BR_STEP})) > /tmp/custombrightness
 			if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -548,6 +560,9 @@ if [ ! -z $1 ]; then
 		    fi
 		elif [ -f ${BRIGHTNESS_FILE} ]; then
 		    LVL=`cat ${BRIGHTNESS_FILE}`
+		    if [ -z ${LVL} ]; then
+			LVL=${BR_MAX}
+		    fi
 		    if [ $((${LVL} + ${BR_STEP})) -le ${BR_MAX} ]; then
 			echo $((${LVL} + ${BR_STEP})) > ${BRIGHTNESS_FILE}
 			cs_echo "Brightness Level Increased To: $((${LVL} + ${BR_STEP}))"
@@ -559,6 +574,9 @@ if [ ! -z $1 ]; then
 	    down)
 		if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 		    LVL=`cat /tmp/custombrightness`
+		    if [ -z ${LVL} ]; then
+			LVL=${BR_MAX}
+		    fi
 		    if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
 			echo $((${LVL} - ${BR_STEP})) > /tmp/custombrightness
 			if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -570,6 +588,9 @@ if [ ! -z $1 ]; then
 		    fi
 		elif [ -f ${BRIGHTNESS_FILE} ]; then
 		    LVL=`cat ${BRIGHTNESS_FILE}`
+		    if [ -z ${LVL} ]; then
+			LVL=${BR_MAX}
+		    fi
 		    if [ $((${LVL} - ${BR_STEP})) -ge ${BR_MIN} ]; then
 			echo $((${LVL} - ${BR_STEP})) > ${BRIGHTNESS_FILE}
 			cs_echo "Brightness Level Reduced To: $((${LVL} + ${BR_STEP}))"
