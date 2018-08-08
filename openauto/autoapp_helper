@@ -458,7 +458,12 @@ if [ "$1" == "restorevolumes" ]; then
 fi
 
 if [ "$1" == "getbrightnessvalues" ]; then
-    echo "$BR_MIN#$BR_MAX#$BR_STEP#" > /tmp/br_values
+    if [ ! -z $CUSTOM_BRIGHTNESS_COMMAND ]; then
+        CUSTOM=1
+    else
+        CUSTOM=0
+    fi
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
 fi
 
 if [ "$1" == "startkodimonitor" ]; then
