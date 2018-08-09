@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.0
+version=1.2.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2042,13 +2042,17 @@ if [ ! -z $1 ]; then
 	sudo cp -f /etc/asound.conf /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.asoundrc /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cat /proc/asound/cards > /tmp/debuglogs/alsa_soundcards_kernel
+	alsactl -f /tmp/alsactl.state store
+	amixer > /tmp/debuglogs/amixer.output
 	pactl list sinks > /tmp/debuglogs/pa_soundcards
+	pactl list sources > /tmp/debuglogs/pa_sources
         sudo cp -f /tmp/get_default_input /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_default_output /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_inputs /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_outputs /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/set_mic /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/set_soundcard /tmp/debuglogs/ >/dev/null 2>&1
+	sudo cp -f /tmp/alsactl.state /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/autoapp_helper_command /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/return_value /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /etc/pulse/* /tmp/debuglogs/ >/dev/null 2>&1
@@ -2083,12 +2087,20 @@ if [ ! -z $1 ]; then
 	sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxxxxxxxx/' /tmp/debuglogs/hostapd.conf
 	sudo sed -i 's/psk=.*/psk=xxxxxxxxx/' /tmp/debuglogs/wpa_supplicant.conf
 	if [ ! -z $WIFI_PSK ]; then
-	    sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
-	    sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+	    if [ -f /tmp/debuglogs/autoapp_helper_command ]; then
+		sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+	    fi
+	    if [ -f /tmp/debuglogs/return_value ]; then
+		sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+	    fi
 	fi
 	if [ ! -z $HOTSPOT_PSK ]; then
-	    sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
-	    sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+	    if [ -f /tmp/debuglogs/autoapp_helper_command ]; then
+		sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+	    fi
+	    if [ -f /tmp/debuglogs/return_value ]; then
+		sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+	    fi
 	fi
 	sudo systemctl daemon-reload
 	sudo systemctl list-units --type=service --no-pager --all | grep 'Crankshaft\|UNIT' | awk {'print $1'} | grep -e '.service' -e '.target' > /tmp/tmp.log
@@ -2137,7 +2149,8 @@ if [ ! -z $1 ]; then
 	sudo rm -rf /boot/debug.zip >/dev/null 2>&1
 	sudo zip -j /boot/debug.zip /tmp/debuglogs/* >/dev/null 2>&1
 	cs_bootro
-        rm -rf /tmp/debug_in_progress
+        sudo rm -rf /tmp/debug_in_progress
+        sudo rm -rf /tmp/debuglogs
     fi
 
     #version
