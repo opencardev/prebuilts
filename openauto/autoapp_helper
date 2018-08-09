@@ -175,7 +175,7 @@ if [ "${array[0]}" == "setparams" ]; then
         echo "${array[17]}" >> /tmp/autoapp_helper_command
         echo "${array[18]}" >> /tmp/autoapp_helper_command
         if [ "${array[17]}" == "none" ]; then
-            /usr/local/bin/crankshaft rtc disable
+            /usr/local/bin/crankshaft rtc disable ${array[18]}
         else
             /usr/local/bin/crankshaft rtc ${array[17]} ${array[18]}
         fi

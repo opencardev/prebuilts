@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.1.9
+version=1.2.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1411,6 +1411,9 @@ if [ ! -z $1 ]; then
 		sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=0/' /boot/crankshaft/crankshaft_env.sh
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
 		sudo sed -i '/./,/^$/!d' /boot/crankshaft/crankshaft_env.sh
+		if [ ! -z $3 ]; then
+		    sudo timedatectl set-timezone "$3"
+		fi
 		cs_check_i2c
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
