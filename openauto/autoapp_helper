@@ -149,7 +149,12 @@ if [ "${array[0]}" == "setparams" ]; then
     pactl set-sink-mute $pulsedeviceplay 0
     # set volume
     if [[ ${array[1]} = *[[:digit:]]* ]]; then
-        pactl set-sink-volume $pulsedeviceplay ${array[1]}%
+        # check min volume
+        if [ ${array[1]} -lt ${STARTUP_VOL_MIN} ];then
+            pactl set-sink-volume $pulsedeviceplay 50%
+        else
+            pactl set-sink-volume $pulsedeviceplay ${array[1]}%
+        fi
     else
         pactl set-sink-volume $pulsedeviceplay 50%
     fi
@@ -161,7 +166,12 @@ if [ "${array[0]}" == "setparams" ]; then
     pactl set-source-mute $pulsedevicecap 0
     # set volume
     if [[ ${array[2]} = *[[:digit:]]* ]]; then
-        pactl set-source-volume $pulsedevicecap ${array[2]}%
+        # check min volume
+        if [ ${array[2]} -lt ${STARTUP_VOL_MIN} ];then
+            pactl set-source-volume $pulsedevicecap 50%
+        else
+            pactl set-source-volume $pulsedevicecap ${array[2]}%
+        fi
     else
         pactl set-source-volume $pulsedevicecap 50%
     fi
