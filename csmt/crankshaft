@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.1
+version=1.2.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1665,8 +1665,74 @@ if [ ! -z $1 ]; then
                     cs_systemro
 		fi
 		;;
+	    openauto)
+                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
+                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
+                    exit 1
+                fi
+		# openauto
+		wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+                REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
+                cs_echo "New file:     $REMOTE"
+                cs_echo "Current file: $LOCAL"
+                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+                    cs_echo "ABORT: checksum fail."
+                    exit 1
+                fi
+		if [ "$REMOTE" == "$LOCAL" ]; then
+		    cs_echo ""
+		    cs_echo "ABORT: openauto is up to date."
+		else
+                    cs_systemrw
+                    sudo killall autoapp >/dev/null 2>&1
+                    sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
+                    sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
+		    # get source file
+		    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+		    # check download
+		    LOCAL=`wc -c /usr/local/bin/autoapp.update | awk '{print $1}'`
+		    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
+		    sudo cp -f /usr/local/bin/autoapp.update /usr/local/bin/autoapp
+		    sudo chmod 777 /usr/local/bin/autoapp
+		    sudo rm /usr/local/bin/autoapp.update
+		    cs_echo ""
+		    cs_echo "OK: openauto updated."
+		    cs_echo ""
+                    cs_systemro
+		fi
+		# autoapp_helper
+		wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+                REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
+                cs_echo "New file:     $REMOTE"
+                cs_echo "Current file: $LOCAL"
+                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+                    cs_echo "ABORT: checksum fail."
+                    exit 1
+                fi
+		if [ "$REMOTE" == "$LOCAL" ]; then
+		    cs_echo ""
+		    cs_echo "ABORT: autoapp_helper is up to date."
+		else
+                    cs_systemrw
+                    sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
+                    sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
+		    # get source file
+		    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+		    # check download
+		    LOCAL=`wc -c /usr/local/bin/autoapp_helper.update | awk '{print $1}'`
+		    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
+		    sudo cp -f /usr/local/bin/autoapp_helper.update /usr/local/bin/autoapp_helper
+		    sudo chmod 777 /usr/local/bin/autoapp_helper
+		    sudo rm /usr/local/bin/autoapp_helper.update
+		    cs_echo ""
+		    cs_echo "OK: autoapp_helper updated."
+                    cs_systemro
+		fi
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto${RESET}"
 		;;
 	esac
     fi
@@ -1858,24 +1924,42 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		fi
 
-		DEV=$(gpio -g read $DEV_PIN)
-		if [ ${#DEV_PIN} -ne 2 ]; then
-		    SHOW_DEV="0"$DEV_PIN
+		if [ ${DEV_PIN} -ne 0 ]; then
+		    DEV=$(gpio -g read $DEV_PIN)
+		    if [ ${#DEV_PIN} -ne 2 ]; then
+			SHOW_DEV="0"$DEV_PIN
+		    else
+			SHOW_DEV=$DEV_PIN
+		    fi
 		else
-		    SHOW_DEV=$DEV_PIN
+		    DEV=0
+		    SHOW_DEV="--"
 		fi
-		INV=$(gpio -g read $INVERT_PIN)
-		if [ ${#INV_PIN} -ne 2 ]; then
-		    SHOW_INV="0"$INVERT_PIN
+
+		if [ ${INVERT_PIN} -ne 0 ]; then
+		    INV=$(gpio -g read $INVERT_PIN)
+		    if [ ${#INVERT_PIN} -ne 2 ]; then
+			SHOW_INV="0"$INVERT_PIN
+		    else
+			SHOW_INV=$INVERT_PIN
+		    fi
 		else
-		    SHOW_INV=$INV_PIN
+		    INV=0
+		    SHOW_INV="--"
 		fi
-		X11=$(gpio -g read $X11_PIN)
-		if [ ${#X11_PIN} -ne 2 ]; then
-		    SHOW_X11="0"$X11_PIN
+
+		if [ ${X11_PIN} -ne 0 ]; then
+		    X11=$(gpio -g read $X11_PIN)
+		    if [ ${#X11_PIN} -ne 2 ]; then
+			SHOW_X11="0"$X11_PIN
+		    else
+			SHOW_X11=$X11_PIN
+		    fi
 		else
-		    SHOW_X11=$X11_PIN
+		    X11=0
+		    SHOW_X11="--"
 		fi
+
 		if [ ${ANDROID_PIN} -ne 0 ]; then
 		    ANDROID=$(gpio -g read $ANDROID_PIN)
 		    if [ ${#ANDROID_PIN} -ne 2 ]; then
@@ -1887,6 +1971,7 @@ if [ ! -z $1 ]; then
 		    ANDROID=0
 		    SHOW_ANDROID="--"
 		fi
+
 		if [ ${IGNITION_PIN} -ne 0 ]; then
 		    IGNITION=$(gpio -g read $IGNITION_PIN)
 		    if [ ${#IGNITION_PIN} -ne 2 ]; then
@@ -1901,30 +1986,42 @@ if [ ! -z $1 ]; then
 
 		cs_echo "${YELLOW}${BOLD}Dev Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		if [ $DEV -eq 1 ]; then
-		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		if [ "$SHOW_DEV" == "--" ]; then
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
-		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    if [ $DEV -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		    else
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    fi
 		fi
 		cs_echo "GPIO: $SHOW_DEV - State: $STATETEXT"
 
 		cs_echo ""
 		cs_echo "${YELLOW}${BOLD}Invert Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		if [ $INV -eq 1 ]; then
-		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		if [ "$SHOW_INV" == "--" ]; then
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
-		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    if [ $INV -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		    else
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    fi
 		fi
 		cs_echo "GPIO: $SHOW_INV - State: $STATETEXT"
 
 		cs_echo ""
 		cs_echo "${YELLOW}${BOLD}X11 Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
-		if [ $X11 -eq 1 ]; then
-		    STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		if [ "$SHOW_X11" == "--" ]; then
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
-		    STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    if [ $X11 -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		    else
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    fi
 		fi
 		cs_echo "GPIO: $SHOW_X11 - State: $STATETEXT"
 
@@ -1932,7 +2029,7 @@ if [ ! -z $1 ]; then
 		cs_echo "${YELLOW}${BOLD}Android Connected${RESET}"
 		cs_echo "---------------------------------------------------------------"
 		if [ "$SHOW_ANDROID" == "--" ]; then
-		    STATETEXT="${RED}${BOLD}disabled${RESET}"
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
 		    if [ $ANDROID -eq 1 ]; then
 			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
@@ -1946,7 +2043,7 @@ if [ ! -z $1 ]; then
 		cs_echo "${YELLOW}${BOLD}Ignition State${RESET}"
 		cs_echo "---------------------------------------------------------------"
 		if [ "$SHOW_IGNITION" == "--" ]; then
-		    STATETEXT="${RED}${BOLD}disabled${RESET}"
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
 		    if [ $IGNITION -eq 1 ]; then
 			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
@@ -2086,12 +2183,12 @@ if [ ! -z $1 ]; then
 	sudo sed -i 's/HOTSPOT_PSK=.*/HOTSPOT_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
 	sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxxxxxxxx/' /tmp/debuglogs/hostapd.conf
 	sudo sed -i 's/psk=.*/psk=xxxxxxxxx/' /tmp/debuglogs/wpa_supplicant.conf
-	if [ ! -z $WIFI_PSK ]; then
+	if [ "${WIFI_PSK}" != "" ]; then
 	    if [ -f /tmp/debuglogs/autoapp_helper_command ]; then
-		sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+		sudo sed -i 's/'"$WIFI_PSK"'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
 	    fi
 	    if [ -f /tmp/debuglogs/return_value ]; then
-		sudo sed -i 's/'$WIFI_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+		sudo sed -i 's/'"$WIFI_PSK"'/xxxxxxxxx/' /tmp/debuglogs/return_value
 	    fi
 	fi
 	if [ ! -z $HOTSPOT_PSK ]; then
@@ -2300,6 +2397,7 @@ else
     echo "update                        Handle Updates"
     echo "     |- udev                  - Check And Update udev Rules For Device Detection"
     echo "     |- csmt                  - Check And Update Crankshaft Management Tool"
+    echo "     |- openauto              - Check And Update openauto/helper - Warning: only use if requested by support!"
     echo ""
     echo "debuglog                      Create debug log for support requests"
     echo ""
