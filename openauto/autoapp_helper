@@ -13,7 +13,7 @@ if [ -z $1 ]; then
     exit 0
 fi
 
-IFS="#" read -r -a array <<< "$@"
+IFS=";" read -r -a array <<< "$@"
 
 # set params to system
 if [ "${array[0]}" == "setparams" ]; then
@@ -416,7 +416,7 @@ if [ "$1" == "getparams" ]; then
 
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${WIFI_PSK}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${HOTSPOT_PSK}#" > /tmp/return_value
+    echo "${versionstring};${datestring};${levelplay};${levelcap};${textshutdown};${DISCONNECTION_POWEROFF_MINS};${textdisconnect};${DISCONNECTION_SCREEN_POWEROFF_SECS};${RTC_DAY_START};${RTC_NIGHT_START};${ENABLE_GPIO};${DEV_PIN};${INVERT_PIN};${X11_PIN};${REARCAM_PIN};${ANDROID_PIN};${START_X11};${FLIP_SCREEN};${mem};${freq};${temp};${rtc};${timezone};${dac};${DISCONNECTION_POWEROFF_DISABLE};${DISCONNECTION_SCREEN_POWEROFF_DISABLE};$custombrightness;${DEBUG_MODE};${IGNITION_PIN};${IGNITION_DELAY};${WIFI_SSID};${WIFI_PSK};${ENABLE_HOTSPOT};${hotspot_ssid};${HOTSPOT_PSK};" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
