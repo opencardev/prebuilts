@@ -13,7 +13,7 @@ if [ -z $1 ]; then
     exit 0
 fi
 
-IFS=";" read -r -a array <<< "$@"
+IFS="#" read -r -a array <<< "$@"
 
 # set params to system
 if [ "${array[0]}" == "setparams" ]; then
@@ -25,27 +25,27 @@ if [ "${array[0]}" == "setparams" ]; then
 
 
     # set disconnect timeout
-    echo "${array[3]}" >> /tmp/autoapp_helper_command
+    echo "Disconnect timeout:${array[3]}" >> /tmp/autoapp_helper_command
     crankshaft timers disconnect set ${array[3]}
 
     # set shutdown timeout
-    echo "${array[4]}" >> /tmp/autoapp_helper_command
+    echo "Shutdown timeout:${array[4]}" >> /tmp/autoapp_helper_command
     crankshaft timers shutdown set ${array[4]}
 
     # set day / night
-    echo "${array[5]}" >> /tmp/autoapp_helper_command
-    echo "${array[6]}" >> /tmp/autoapp_helper_command
+    echo "Start day:${array[5]}" >> /tmp/autoapp_helper_command
+    echo "Start night:${array[6]}" >> /tmp/autoapp_helper_command
     crankshaft timers daynight ${array[5]} ${array[6]}
 
     # set general gpio usage # dev mode gpio # invert gpio # x11 gpio # rearcam gpio # android gpio # enable x11 mode # enable flip mode
-    echo "${array[7]}" >> /tmp/autoapp_helper_command
-    echo "${array[8]}" >> /tmp/autoapp_helper_command
-    echo "${array[9]}" >> /tmp/autoapp_helper_command
-    echo "${array[10]}" >> /tmp/autoapp_helper_command
-    echo "${array[11]}" >> /tmp/autoapp_helper_command
-    echo "${array[12]}" >> /tmp/autoapp_helper_command
-    echo "${array[13]}" >> /tmp/autoapp_helper_command
-    echo "${array[14]}" >> /tmp/autoapp_helper_command
+    echo "GPIO enable:${array[7]}" >> /tmp/autoapp_helper_command
+    echo "Dev pin:${array[8]}" >> /tmp/autoapp_helper_command
+    echo "Invert pin:${array[9]}" >> /tmp/autoapp_helper_command
+    echo "X11 pin:${array[10]}" >> /tmp/autoapp_helper_command
+    echo "Rearcam pin:${array[11]}" >> /tmp/autoapp_helper_command
+    echo "Android pin:${array[12]}" >> /tmp/autoapp_helper_command
+    echo "Start x11:${array[13]}" >> /tmp/autoapp_helper_command
+    echo "Flip screen:${array[14]}" >> /tmp/autoapp_helper_command
 
     # open filesystems
     crankshaft filesystem boot unlock
@@ -60,27 +60,21 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^FLIP_SCREEN=.*/FLIP_SCREEN='$(echo ${array[14]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # set debug mode
-    echo "${array[22]}" >> /tmp/autoapp_helper_command
+    echo "Debug mode:${array[22]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^DEBUG_MODE=.*/DEBUG_MODE='$(echo ${array[22]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # ignition values
-    echo "${array[23]}" >> /tmp/autoapp_helper_command
-    echo "${array[24]}" >> /tmp/autoapp_helper_command
+    echo "Ignition pin:${array[23]}" >> /tmp/autoapp_helper_command
+    echo "Ignition delay:${array[24]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^IGNITION_PIN=.*/IGNITION_PIN='$(echo ${array[23]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^IGNITION_DELAY=.*/IGNITION_DELAY='$(echo ${array[24]})'/' /boot/crankshaft/crankshaft_env.sh
 
-    # wifi credentials
-    echo "${array[25]}" >> /tmp/autoapp_helper_command
-    echo "${array[26]}" >> /tmp/autoapp_helper_command
+    # enable hotspot
     echo "${array[27]}" >> /tmp/autoapp_helper_command
-    echo "${array[28]}" >> /tmp/autoapp_helper_command
-    sudo sed -i 's/^WIFI_SSID=.*/WIFI_SSID='$(echo ${array[25]})'/' /boot/crankshaft/crankshaft_env.sh
-    sudo sed -i 's/^WIFI_PSK=.*/WIFI_PSK='$(echo ${array[26]})'/' /boot/crankshaft/crankshaft_env.sh
-    sudo sed -i 's/^ENABLE_HOTSPOT=.*/ENABLE_HOTSPOT='$(echo ${array[27]})'/' /boot/crankshaft/crankshaft_env.sh
-    sudo sed -i 's/^HOTSPOT_PSK=.*/HOTSPOT_PSK='$(echo ${array[28]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^ENABLE_HOTSPOT=.*/ENABLE_HOTSPOT='$(echo ${array[25]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # set audio output device
-    echo "${array[15]}" >> /tmp/autoapp_helper_command
+    echo "Outdio output:${array[15]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[15]}" != "No audio output hardware detected!" ]; then
         card=$(echo ${array[15]} | cut -d- -f1 | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
@@ -112,7 +106,7 @@ if [ "${array[0]}" == "setparams" ]; then
     fi
 
     # set audio input device
-    echo "${array[16]}" >> /tmp/autoapp_helper_command
+    echo "Audio input:${array[16]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[16]}" != "No audio input hardware detected!" ]; then
         card=$(echo ${array[16]} | cut -d- -f1 | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
@@ -143,7 +137,7 @@ if [ "${array[0]}" == "setparams" ]; then
         fi
     fi
     # set playback volume
-    echo "${array[1]}" >> /tmp/autoapp_helper_command
+    echo "Playback volume:${array[1]}" >> /tmp/autoapp_helper_command
     pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     # unmute
     pactl set-sink-mute $pulsedeviceplay 0
@@ -160,7 +154,7 @@ if [ "${array[0]}" == "setparams" ]; then
     fi
 
     # set capture volume
-    echo "${array[2]}" >> /tmp/autoapp_helper_command
+    echo "Capture volume:${array[2]}" >> /tmp/autoapp_helper_command
     pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     # unmute
     pactl set-source-mute $pulsedevicecap 0
@@ -180,10 +174,13 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sh -c 'echo "'${array[1]}'" > /boot/crankshaft/volume'
     sudo sh -c 'echo "'${array[2]}'" > /boot/crankshaft/capvolume'
 
+    # hardware save
+    echo "Hardware save:${array[27]}" >> /tmp/autoapp_helper_command
+
     # rtc setup
-    if [ ${array[29]} == "1" ]; then
-        echo "${array[17]}" >> /tmp/autoapp_helper_command
-        echo "${array[18]}" >> /tmp/autoapp_helper_command
+    if [ ${array[27]} == "1" ]; then
+        echo "Rtc:${array[17]}" >> /tmp/autoapp_helper_command
+        echo "Timezone:${array[18]}" >> /tmp/autoapp_helper_command
         if [ "${array[17]}" == "none" ]; then
             /usr/local/bin/crankshaft rtc disable ${array[18]}
         else
@@ -192,8 +189,8 @@ if [ "${array[0]}" == "setparams" ]; then
     fi
 
     # dac setup
-    if [ ${array[29]} == "1" ]; then
-        echo "${array[19]}" >> /tmp/autoapp_helper_command
+    if [ ${array[27]} == "1" ]; then
+        echo "Dac:${array[19]}" >> /tmp/autoapp_helper_command
         if [ "${array[19]}" == "Custom" ]; then
             /usr/local/bin/crankshaft audio clean
         fi
@@ -235,8 +232,18 @@ if [ "${array[0]}" == "setparams" ]; then
         fi
     fi
 
+    # rpi cam
+    if [ ${array[27]} == "1" ]; then
+        echo "Cam:${array[26]}" >> /tmp/autoapp_helper_command
+        if [ "${array[26]}" == "enabled" ]; then
+            crankshaft rpicam enable
+        else
+            crankshaft rpicam disable
+        fi
+    fi
+
     # Enable/Disable Timers
-    echo "${array[20]}" >> /tmp/autoapp_helper_command
+    echo "Timer shutdown disable:${array[20]}" >> /tmp/autoapp_helper_command
     if [ "${array[20]}" == "1" ]; then
         crankshaft timers shutdown disable
     else
@@ -248,7 +255,7 @@ if [ "${array[0]}" == "setparams" ]; then
         fi
     fi
 
-    echo "${array[21]}" >> /tmp/autoapp_helper_command
+    echo "Timer disconnect disable:${array[21]}" >> /tmp/autoapp_helper_command
     if [ "${array[21]}" == "1" ]; then
         crankshaft timers disconnect disable
     else
@@ -259,6 +266,7 @@ if [ "${array[0]}" == "setparams" ]; then
             crankshaft timers disconnect stop
         fi
     fi
+
     # clean buffers
     sync
 
@@ -270,6 +278,11 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "configure done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
     sudo rm /tmp/config_in_progress
+fi
+
+# set wifiparams to system
+if [ "${array[0]}" == "setwifiparams" ]; then
+    echo "$@" | cut -d'#' -f2- | sed 's/###/\n/g' > /tmp/wifi_cred
 fi
 
 # get params from system
@@ -414,9 +427,17 @@ if [ "$1" == "getparams" ]; then
 
     hotspot_ssid=$(cat /etc/hostapd/hostapd.conf | grep '^ssid=' | cut -d= -f2)
 
+    # get rpi cam enabled
+    CAM=$(cat /boot/config.txt | grep '^start_x=1' | tail -n1)
+    if [ ! -z $CAM ]; then
+        CAM="enabled"
+    else
+        CAM="none"
+    fi
+
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring};${datestring};${levelplay};${levelcap};${textshutdown};${DISCONNECTION_POWEROFF_MINS};${textdisconnect};${DISCONNECTION_SCREEN_POWEROFF_SECS};${RTC_DAY_START};${RTC_NIGHT_START};${ENABLE_GPIO};${DEV_PIN};${INVERT_PIN};${X11_PIN};${REARCAM_PIN};${ANDROID_PIN};${START_X11};${FLIP_SCREEN};${mem};${freq};${temp};${rtc};${timezone};${dac};${DISCONNECTION_POWEROFF_DISABLE};${DISCONNECTION_SCREEN_POWEROFF_DISABLE};$custombrightness;${DEBUG_MODE};${IGNITION_PIN};${IGNITION_DELAY};${WIFI_SSID};${WIFI_PSK};${ENABLE_HOTSPOT};${hotspot_ssid};${HOTSPOT_PSK};" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
