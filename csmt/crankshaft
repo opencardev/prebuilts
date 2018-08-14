@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.3
+version=1.2.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -418,6 +418,20 @@ function cs_clear_screen_header() {
     fi
 }
 
+function cs_clear_bluetooth() {
+# Remove all previous paired devices
+list=""
+bt-device -l | grep -E -o '[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}' | { while read line
+do
+       list="$list remove $line
+"
+done
+bluetoothctl << EOF
+$list
+EOF
+}
+}
+
 # echo if user logged in
 function cs_echo() {
     PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
@@ -429,7 +443,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|debuglog|version${RESET}"
 	exit 0
@@ -1916,6 +1930,38 @@ if [ ! -z $1 ]; then
 	cat /var/log/syslog
     fi
 
+    #bluetooth
+    if [ $1 == "bluetooth" ]; then
+	case $2 in
+	    save)
+		cs_bootrw
+		sudo tar -cvf /boot/crankshaft/bluetooth-pairings.tar.gz /tmp/bluetooth
+		cs_bootro
+		;;
+	    restore)
+		cs_systemrw
+		sudo tar -xvf /boot/crankshaft/bluetooth-pairings.tar.gz -C /
+		cs_systemro
+		;;
+	    status)
+		device=$(bt-device -l | tail -n1 | cut -d'(' -f1 | sed 's/^ .*//g' | sed 's/ *$//g')
+		mac="$(bt-device -l | tail -n1 | cut -d'(' -f2 | cut -d')' -f1)"
+		state=$(bt-device -i $mac | grep Connected | cut -d: -f2 | sed 's/ //g')
+		if [ "$state" == "1" ]; then
+		    echo "Device: $device | MAC: $mac | State: Connected"
+		else
+		    echo "Device: $device | MAC: $mac | State: Disconnected"
+		fi
+		;;
+	    unpair)
+		cs_clear_bluetooth
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore${RESET}"
+		;;
+	esac
+    fi
+
     #gpio
     if [ $1 == "gpio" ]; then
 	case $2 in
@@ -2393,6 +2439,12 @@ else
     echo ""
     echo "hotspot                       Hotspot related stuff"
     echo "  |- status                   - List connected clients"
+    echo ""
+    echo "bluetooth                     Bluetooth realted stuff"
+    echo "        |- save               - Save paired bluetooth devices"
+    echo "        |- restore            - Restore paired bluetooth devices"
+    echo "        |- status             - Show status of paired devices"
+    echo "        |- unpair             - Unpair all paired devices"
     echo ""
     echo "syslog                        Show os syslog"
     echo ""
