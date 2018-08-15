@@ -70,8 +70,12 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^IGNITION_DELAY=.*/IGNITION_DELAY='$(echo ${array[24]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # enable hotspot
-    echo "${array[27]}" >> /tmp/autoapp_helper_command
+    echo "${array[25]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^ENABLE_HOTSPOT=.*/ENABLE_HOTSPOT='$(echo ${array[25]})'/' /boot/crankshaft/crankshaft_env.sh
+
+    # enable bluetooth
+    echo "${array[27]}" >> /tmp/autoapp_helper_command
+    sudo sed -i 's/^ENABLE_BLUETOOTH=.*/ENABLE_BLUETOOTH='$(echo ${array[27]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # set audio output device
     echo "Outdio output:${array[15]}" >> /tmp/autoapp_helper_command
@@ -175,10 +179,10 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sh -c 'echo "'${array[2]}'" > /boot/crankshaft/capvolume'
 
     # hardware save
-    echo "Hardware save:${array[27]}" >> /tmp/autoapp_helper_command
+    echo "Hardware save:${array[28]}" >> /tmp/autoapp_helper_command
 
     # rtc setup
-    if [ ${array[27]} == "1" ]; then
+    if [ ${array[28]} == "1" ]; then
         echo "Rtc:${array[17]}" >> /tmp/autoapp_helper_command
         echo "Timezone:${array[18]}" >> /tmp/autoapp_helper_command
         if [ "${array[17]}" == "none" ]; then
@@ -189,7 +193,7 @@ if [ "${array[0]}" == "setparams" ]; then
     fi
 
     # dac setup
-    if [ ${array[27]} == "1" ]; then
+    if [ ${array[28]} == "1" ]; then
         echo "Dac:${array[19]}" >> /tmp/autoapp_helper_command
         if [ "${array[19]}" == "Custom" ]; then
             /usr/local/bin/crankshaft audio clean
@@ -233,7 +237,7 @@ if [ "${array[0]}" == "setparams" ]; then
     fi
 
     # rpi cam
-    if [ ${array[27]} == "1" ]; then
+    if [ ${array[28]} == "1" ]; then
         echo "Cam:${array[26]}" >> /tmp/autoapp_helper_command
         if [ "${array[26]}" == "enabled" ]; then
             crankshaft rpicam enable
@@ -437,7 +441,7 @@ if [ "$1" == "getparams" ]; then
 
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
