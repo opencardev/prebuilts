@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.5
+version=1.2.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1946,14 +1946,15 @@ if [ ! -z $1 ]; then
 		cs_systemro
 		;;
 	    status)
-		device=$(bt-device -l | tail -n1 | cut -d'(' -f1 | sed 's/^ .*//g' | sed 's/ *$//g')
-		mac="$(bt-device -l | tail -n1 | cut -d'(' -f2 | cut -d')' -f1)"
-		state=$(bt-device -i $mac | grep Connected | cut -d: -f2 | sed 's/ //g')
-		if [ "$state" == "1" ]; then
-		    echo "Device: $device | MAC: $mac | State: Connected"
-		else
-		    echo "Device: $device | MAC: $mac | State: Disconnected"
-		fi
+		bt-device -l | grep -e '(' | grep -e ':' | cut -d'(' -f2 | cut -d')' -f1 | while read paired; do
+		    device=$(bt-device -i  $paired | grep -e 'Name:' | cut -d':' -f2 | sed 's/^ //g' | sed 's/ *$//g')
+		    state=$(bt-device -i  $paired | grep -e 'Connected:' | cut -d':' -f2 |  sed 's/^ //g' | sed 's/ *$//g')
+		    if [ "$state" == "1" ]; then
+			echo "Device: $device | MAC: $paired | State: Connected"
+		    else
+			echo "Device: $device | MAC: $paired | State: Disconnected"
+		    fi
+		done
 		;;
 	    unpair)
 		cs_clear_bluetooth
@@ -2461,3 +2462,4 @@ else
 fi
 
 exit 0
+
