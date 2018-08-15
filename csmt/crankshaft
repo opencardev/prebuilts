@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.4
+version=1.2.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1699,6 +1699,7 @@ if [ ! -z $1 ]; then
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo ""
 		    cs_echo "ABORT: openauto is up to date."
+		    cs_echo ""
 		else
                     cs_systemrw
                     sudo killall autoapp >/dev/null 2>&1
@@ -1730,6 +1731,7 @@ if [ ! -z $1 ]; then
 		if [ "$REMOTE" == "$LOCAL" ]; then
 		    cs_echo ""
 		    cs_echo "ABORT: autoapp_helper is up to date."
+		    cs_echo ""
 		else
                     cs_systemrw
                     sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
