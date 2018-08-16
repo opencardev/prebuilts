@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.6
+version=1.2.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1959,6 +1959,51 @@ if [ ! -z $1 ]; then
 	    unpair)
 		cs_clear_bluetooth
 		;;
+	    builtin)
+		cs_bootrw
+		cs_systemrw
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=pi3-disable-bt.*//' /boot/config.txt
+		sudo sed -i 's/^# Bluetooth.*//' /boot/config.txt
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo systemctl enable hciuart >/dev/null 2>&1
+                sudo sed -i 's/^ENABLE_BLUETOOTH=.*/ENABLE_BLUETOOTH=1/' /boot/crankshaft/crankshaft_env.sh
+                sudo sed -i 's/^EXTERNAL_BLUETOOTH=.*/EXTERNAL_BLUETOOTH=0/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		cs_systemro
+		;;
+	    external)
+		cs_bootrw
+		cs_systemrw
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=pi3-disable-bt.*//' /boot/config.txt
+		sudo sed -i 's/^# Bluetooth.*//' /boot/config.txt
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sh -c "echo '' >> /boot/config.txt"
+		sudo sh -c "echo '# Bluetooth' >> /boot/config.txt"
+		sudo sh -c "echo 'dtoverlay=pi3-disable-bt' >> /boot/config.txt"
+		sudo systemctl disable hciuart >/dev/null 2>&1
+                sudo sed -i 's/^ENABLE_BLUETOOTH=.*/ENABLE_BLUETOOTH=1/' /boot/crankshaft/crankshaft_env.sh
+                sudo sed -i 's/^EXTERNAL_BLUETOOTH=.*/EXTERNAL_BLUETOOTH=1/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		cs_systemro
+		;;
+	    disable)
+		cs_bootrw
+		cs_systemrw
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=pi3-disable-bt.*//' /boot/config.txt
+		sudo sed -i 's/^# Bluetooth.*//' /boot/config.txt
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sh -c "echo '' >> /boot/config.txt"
+		sudo sh -c "echo '# Bluetooth' >> /boot/config.txt"
+		sudo sh -c "echo 'dtoverlay=pi3-disable-bt' >> /boot/config.txt"
+		sudo systemctl disable hciuart >/dev/null 2>&1
+                sudo sed -i 's/^ENABLE_BLUETOOTH=.*/ENABLE_BLUETOOTH=0/' /boot/crankshaft/crankshaft_env.sh
+                sudo sed -i 's/^EXTERNAL_BLUETOOTH=.*/EXTERNAL_BLUETOOTH=0/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		cs_systemro
+		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore${RESET}"
 		;;
@@ -2448,6 +2493,9 @@ else
     echo "        |- restore            - Restore paired bluetooth devices"
     echo "        |- status             - Show status of paired devices"
     echo "        |- unpair             - Unpair all paired devices"
+    echo "        |- builtin            - Enable builtin bluetooth support"
+    echo "        |- external           - Disable builtin bluetooth support to use external adapter"
+    echo "        |- disable            - Disable builtin bluetooth support to use external adapter"
     echo ""
     echo "syslog                        Show os syslog"
     echo ""
