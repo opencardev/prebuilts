@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.2.9
+version=1.3.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1937,14 +1937,13 @@ if [ ! -z $1 ]; then
 	case $2 in
 	    save)
 		cs_bootrw
+		sudo rm -f /boot/crankshaft/bluetooth-pairings.tar.gz
 		sudo tar -cvf /boot/crankshaft/bluetooth-pairings.tar.gz /tmp/bluetooth
 		cs_bootro
 		;;
 	    restore)
-		cs_systemrw
 		sudo tar -xvf /boot/crankshaft/bluetooth-pairings.tar.gz -C /
 		sudo chmod -R 777 /tmp/bluetooth/
-		cs_systemro
 		;;
 	    status)
 		bt-device -l | grep -e '(' | grep -e ':' | cut -d'(' -f2 | cut -d')' -f1 | while read paired; do
@@ -1959,6 +1958,9 @@ if [ ! -z $1 ]; then
 		;;
 	    unpair)
 		cs_clear_bluetooth
+		cs_bootrw
+		sudo rm -f /boot/crankshaft/bluetooth-pairings.tar.gz
+		cs_bootro
 		;;
 	    builtin)
 		cs_bootrw
