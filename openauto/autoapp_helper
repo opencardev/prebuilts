@@ -536,9 +536,11 @@ if [ "$1" == "startcustombrightness" ]; then
 fi
 
 if [ "$1" == "enablepairing" ]; then
+    touch /tmp/enable_pairing
     sudo bt-adapter --set PairableTimeout 120
     sudo bt-adapter --set Pairable 1
+    sleep 2
+    sudo rm -f /tmp/enable_pairing
 fi
 
 exit 0
-
