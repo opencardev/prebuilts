@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.0
+version=1.3.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1147,19 +1147,19 @@ if [ ! -z $1 ]; then
 		if [ ! -z $3 ]; then
 		    if [ $3 == "save" ]; then
 			cs_bootrw
-			alsactl -f /tmp/alsactl.state store
+			sudo alsactl -f /tmp/alsactl.state store
 			sudo cp -f /tmp/alsactl.state /boot/crankshaft/alsactl.state
 			cs_echo "Alsa state saved"
 			cs_bootro
 		    elif [ $3 == "restore" ]; then
 			if [ -f /boot/crankshaft/alsactl.firstinit ]; then
-			    alsactl -f /boot/crankshaft/alsactl.firstinit restore
+			    sudo alsactl -f /boot/crankshaft/alsactl.firstinit restore
 			    cs_bootrw
 			    sudo rm -f /boot/crankshaft/alsactl.firstinit
 			    cs_bootro
 			else
 			    if [ -f /boot/crankshaft/alsactl.state ]; then
-				alsactl -f /boot/crankshaft/alsactl.state restore
+				sudo alsactl -f /boot/crankshaft/alsactl.state restore
 				cs_echo "Alsa state restored"
 			    else
 				cs_echo "No alsa state file to restored"
