@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.3
+version=1.3.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -343,16 +343,17 @@ function cs_rtc() {
     sudo sh -c "echo '# RTC Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=i2c-rtc,'$1 >> /boot/config.txt"
     sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=1/' /boot/crankshaft/crankshaft_env.sh
-    cs_check_i2c
     sudo systemctl disable fake-hwclock.service >/dev/null 2>&1
     sudo systemctl enable hwclock-load.service >/dev/null 2>&1
     sudo systemctl enable hwclock-save.service >/dev/null 2>&1
     sudo systemctl daemon-reload
+    echo $2
     if [ ! -z $2 ]; then
 	sudo timedatectl set-timezone "$2"
     else
-	sudo dpkg-reconfigure tzdata
+	sudo timedatectl set-timezone "$(cat /etc/timezone)"
     fi
+    cs_check_i2c
 }
 
 function cs_check_i2c() {
@@ -701,27 +702,27 @@ if [ ! -z $1 ]; then
 	    system)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p2 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemrw
 			cs_echo ""
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p2 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p2 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemro
 			cs_echo ""
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p2 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
@@ -736,27 +737,27 @@ if [ ! -z $1 ]; then
 	    boot)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p1 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootrw
 			cs_echo ""
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p1 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p1 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootro
 			cs_echo ""
-			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmvblk0p1 " | awk '{print $1}') ]; then
+			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
