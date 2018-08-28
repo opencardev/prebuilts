@@ -490,8 +490,10 @@ if [ "$1" == "restorevolumes" ]; then
                 volume=${STARTUP_VOL_MAX}
             fi
             pactl set-sink-volume $pulsedeviceplay $volume%
+            echo "$volume" > /tmp/play_volume
         else
             pactl set-sink-volume $pulsedeviceplay 50%
+            echo "50" > /tmp/play_volume
         fi
     fi
 
@@ -527,10 +529,6 @@ if [ "$1" == "getbrightnessvalues" ]; then
     echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
 fi
 
-if [ "$1" == "startkodimonitor" ]; then
-    sudo systemctl start kodimonitor
-fi
-
 if [ "$1" == "startcustombrightness" ]; then
     sudo systemctl start custombrightness
 fi
@@ -541,6 +539,31 @@ if [ "$1" == "enablepairing" ]; then
     sudo bt-adapter --set Pairable 1
     sleep 2
     sudo rm -f /tmp/enable_pairing
+fi
+
+if [ "$1" == "getvolume" ]; then
+    # get soundcard volume
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    levelplay=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
+    echo "$levelplay" > /tmp/get_volume_device
+fi
+
+if [ "$1" == "setvolume" ]; then
+    # set soundcard volume
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pactl set-sink-volume $pulsedeviceplay $2%
+fi
+
+if [ "$1" == "setmute" ]; then
+    # mute soundcard
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pactl set-sink-mute $pulsedeviceplay 1
+fi
+
+if [ "$1" == "setunmute" ]; then
+    # unmute soundcard
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pactl set-sink-mute $pulsedeviceplay 0
 fi
 
 exit 0
