@@ -28,7 +28,7 @@ fi
 cd $HOME/qt510_build
 
 ./src/qt-everywhere-src-5.10.1/configure \
--v -opengl es2 -eglfs -no-gtk -device linux-rasp-pi-g++ -device-option CROSS_COMPILE=/usr/bin/ -opensource -confirm-license \
+-v -opengl es2 -eglfs -no-gtk -device linux-rasp-pi2-g++ -device-option CROSS_COMPILE=/usr/bin/ -opensource -confirm-license \
 -optimized-qmake -reduce-exports -release -prefix /usr/local/qt5 -sysroot / -fontconfig -glib -recheck -evdev -ssl -qt-xcb \
 -make libs -nomake examples -no-compile-examples -nomake tests -skip qt3d -skip qtandroidextras -skip qtcanvas3d -skip qtcharts \
 -skip qtdatavis3d -skip qtdoc -skip qtgamepad -skip qtlocation -skip qtmacextras -skip qtpurchasing -skip qtscript -skip qtscxml \
