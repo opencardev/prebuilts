@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.4
+version=1.3.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -836,7 +836,9 @@ if [ ! -z $1 ]; then
 			cs_systemro
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-				sudo systemctl start disconnect.timer >/dev/null 2>&1
+				if [ ! -f /tmp/btdevice ]; then
+				    sudo systemctl start disconnect.timer >/dev/null 2>&1
+				fi
 			    fi
 			fi
 		    elif [ $3 == "set" ] && [ ! -z $4 ]; then
@@ -880,7 +882,9 @@ if [ ! -z $1 ]; then
 			fi
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-				sudo systemctl start shutdown.timer >/dev/null 2>&1
+				if [ ! -f /tmp/btdevice ]; then
+				    sudo systemctl start shutdown.timer >/dev/null 2>&1
+				fi
 			    fi
 			fi
 		    elif [ $3 == "set" ] && [ ! -z $4 ]; then
@@ -920,7 +924,7 @@ if [ ! -z $1 ]; then
 		sudo systemctl stop disconnect.service >/dev/null 2>&1
 		sudo systemctl stop shutdown.timer >/dev/null 2>&1
 		sudo systemctl stop shutdown.service >/dev/null 2>&1
-		if [ ! -f /tmp/devmode_enabled ]; then
+		if [ ! -f /tmp/dev_mode_enabled ]; then
 		    cs_systemrw
 		    if [ ! -z $DISCONNECTION_SCREEN_POWEROFF_SECS ]; then
 			if [ -f /etc/cs_first_start_done ]; then
@@ -934,10 +938,14 @@ if [ ! -z $1 ]; then
 		    fi
 		    if [ ! -f /tmp/android_device ]; then
 			if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-			    sudo systemctl start shutdown.timer >/dev/null 2>&1
+			    if [ ! -f /tmp/btdevice ]; then
+				sudo systemctl start shutdown.timer >/dev/null 2>&1
+			    fi
 			fi
 			if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-			    sudo systemctl start disconnect.timer >/dev/null 2>&1
+			    if [ ! -f /tmp/btdevice ]; then
+				sudo systemctl start disconnect.timer >/dev/null 2>&1
+			    fi
 			fi
 		    fi
 		    cs_systemro
