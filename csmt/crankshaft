@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.5
+version=1.3.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -442,9 +442,9 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|debuglog|version${RESET}"
 	exit 0
     fi
 
@@ -1504,6 +1504,21 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #state
+    if [ $1 == "state" ]; then
+	case $2 in
+	    day)
+		/opt/crankshaft/service_daynight.sh app day
+		;;
+	    night)
+		/opt/crankshaft/service_daynight.sh app night
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft state day|night${RESET}"
+		;;
+	esac
+    fi
+
     #services
     if [ $1 == "services" ]; then
 	case $2 in
@@ -2469,6 +2484,10 @@ else
     echo "               |- stop        - Stop Timer Shutdown"
     echo "               |- set xx      - Set Shutdown Timeout"
     echo "     |- daynight xx xx        - Start hour for day and start hour for night (used to switch gui to day/night)"
+    echo ""
+    echo "state                          Handle Day/Night (will be overwritten by rtc if enabled)"
+    echo "    |- day                    - Set System To Day"
+    echo "    |- night                  - Set System To Night"
     echo ""
     echo "audio                         Handle Audio Output"
     echo "    |- rpi                    - Enable default rpi audio"
