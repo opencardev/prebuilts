@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.6
+version=1.3.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1059,11 +1059,16 @@ if [ ! -z $1 ]; then
                         cs_audio_audioinjector_controls
 			cs_bootro
 			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "octo" ]; then
+			cs_bootrw
+			cs_audio_audioinjector "addons"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		    else
-			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo|octo${RESET}"
 		    fi
 		else
-		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio audioinjector zero|stereo|octo${RESET}"
 		fi
 		;;
 	    allo)
@@ -2499,6 +2504,7 @@ else
     echo "    |- audioinjector"
     echo "                   |- zero    - AudioInjector DAC Zero"
     echo "                   |- stereo  - AudioInjector DAC Stereo"
+    echo "                   |- octo    - AudioInjector DAC Octo"
     echo "    |- allo"
     echo "          |- boss             - Allo Boss DAC"
     echo "          |- piano            - Allo Piano DAC"
