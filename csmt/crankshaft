@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.8
+version=1.3.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -442,7 +442,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|debuglog|version${RESET}"
 	exit 0
@@ -2010,6 +2010,45 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #custom buttons
+    if [ $1 == "buttons" ]; then
+	case $2 in
+	    create)
+		if [[ $3 =~ ^[0-9] ]]; then
+		    if [ $3 -gt 0 ] && [ $3 -lt 9 ]; then
+			if [ ! -f "/boot/crankshaft/button_$3" ]; then
+			    cs_bootrw
+			    sudo sh -c 'echo "Button'$3'#/your/command#186,189,182#" > /boot/crankshaft/button_'$3''
+			    cs_bootro
+			    cs_echo "Button $3 config created."
+			    cs_echo "You can now customize the button config."
+			    cs_echo ""
+			    cs_echo "Syntax:"
+			    cs_echo ""
+			    cs_echo "${BLUE}${BOLD}Name of Button ${GREEN}#${BLUE} your commnand (no params possible) ${GREEN}#${BLUE} rgb color ${GREEN}#${RESET}"
+			    cs_echo ""
+			    cs_echo "Samples:"
+			    cs_echo ""
+			    cs_echo "${BLUE}${BOLD}MyButton${GREEN}#${BLUE}/path/to/my/command${GREEN}#${BLUE}255,255,255${GREEN}#${RESET}"
+			    cs_echo ""
+			    cs_echo "${BLUE}${BOLD}MyButton${GREEN}#${BLUE}/path/to/my/command${GREEN}#${BLUE}${GREEN}#${RESET}"
+			    cs_echo ""
+			    cs_echo "Note: color code is optional - if not set gray is assigned."
+			    cs_echo ""
+			else
+			    cs_echo "Button $3 config already exists! - Abort."
+			fi
+		    else
+			echo "Only button 1-8 is possible!"
+		    fi
+		fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft buttons create 1|2|3|4|5|6|7|8${RESET}"
+		;;
+	esac
+    fi
+
     #syslog
     if [ $1 == "syslog" ]; then
 	cat /var/log/syslog
@@ -2342,6 +2381,7 @@ if [ ! -z $1 ]; then
         sudo cp -f /tmp/return_value /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /etc/timezone /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /etc/pulse/* /tmp/debuglogs/ >/dev/null 2>&1
+        sudo cp -f /boot/crankshaft/button_* /tmp/debuglogs/ >/dev/null 2>&1
 	sudo /usr/bin/systemd-analyze plot > /tmp/debuglogs/startsequence.svg
 
 	sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
