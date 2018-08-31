@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.3.9
+version=1.4.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2627,6 +2627,9 @@ else
     echo "hotspot                       Hotspot related stuff"
     echo "  |- status                   - List connected clients"
     echo ""
+    echo "buttons                       Custom Button stuff"
+    echo "      |- create x             - Create the default config file for button (1-8)"
+    echo ""
     echo "bluetooth                     Bluetooth realted stuff"
     echo "        |- save               - Save paired bluetooth devices"
     echo "        |- restore            - Restore paired bluetooth devices"
@@ -2649,4 +2652,3 @@ else
 fi
 
 exit 0
-
