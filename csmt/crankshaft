@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.1
+version=1.4.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1540,19 +1540,20 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable devmode.service >/dev/null 2>&1
 		sudo systemctl enable debugmode.service >/dev/null 2>&1
 		sudo systemctl enable display.service >/dev/null 2>&1
+		sudo systemctl enable user_startup.service >/dev/null 2>&1
+		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl enable update.service >/dev/null 2>&1
 		sudo systemctl enable usbrestore.service >/dev/null 2>&1
 		sudo systemctl enable usbdetect.service >/dev/null 2>&1
-		sudo systemctl enable user_startup.service >/dev/null 2>&1
 		sudo systemctl enable daymode.timer >/dev/null 2>&1
 		sudo systemctl enable nightmode.timer >/dev/null 2>&1
 		sudo systemctl enable tap2wake.service >/dev/null 2>&1
-		sudo systemctl enable regensshkeys.service >/dev/null 2>&1
-		sudo systemctl enable ssh.service >/dev/null 2>&1
 		sudo systemctl enable openauto.service >/dev/null 2>&1
-		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl enable gpiotrigger.service >/dev/null 2>&1
 		sudo systemctl enable timerstart.service >/dev/null 2>&1
+		sudo systemctl enable regensshkeys.service >/dev/null 2>&1
+		sudo systemctl enable ssh.service >/dev/null 2>&1
+		sudo systemctl enable kodimonitor.service >/dev/null 2>&1
 		sudo systemctl disable rpicamserver.service >/dev/null 2>&1
 		sudo systemctl disable wpa_supplicant.service >/dev/null 2>&1
 		sudo systemctl disable networking.service >/dev/null 2>&1
@@ -1562,15 +1563,27 @@ if [ ! -z $1 ]; then
 		sudo systemctl disable systemd-rfkill.service >/dev/null 2>&1
 		sudo systemctl disable systemd-rfkill.socket >/dev/null 2>&1
 		sudo systemctl disable systemd-timesyncd.service >/dev/null 2>&1
-		sudo systemctl disable resize2fs_once.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
+		sudo systemctl disable resize2fs_once.service >/dev/null 2>&1
 		sudo systemctl disable bluetooth.service >/dev/null 2>&1
 		sudo systemctl disable hciuart.service >/dev/null 2>&1
 		sudo systemctl disable hostapd.service >/dev/null 2>&1
 		sudo systemctl disable dnsmasq.service >/dev/null 2>&1
 		sudo systemctl disable hotspot.service >/dev/null 2>&1
-		sudo systemctl disable systemd-backlight@.service >/dev/null 2>&1
+		sudo systemctl disable alsa-state.service >/dev/null 2>&1
+		sudo systemctl disable apply_noobs_os_config.service >/dev/null 2>&1
+		sudo systemctl disable wifi-country.service >/dev/null 2>&1
+		sudo systemctl disable alsa-restore.service >/dev/null 2>&1
+		sudo systemctl disable raspi-config.service >/dev/null 2>&1
+		sudo systemctl disable bluetooth >/dev/null 2>&1
+		sudo systemctl disable hciuart >/dev/null 2>&1
+		sudo systemctl disable ofono >/dev/null 2>&1
+		sudo systemctl enable csng-bluetooth >/dev/null 2>&1
+		sudo systemctl enable btautopair >/dev/null 2>&1
+		sudo systemctl enable btautoconnect >/dev/null 2>&1
+		sudo systemctl enable btdevicedetect >/dev/null 2>&1
+		sudo systemctl enable btrestore >/dev/null 2>&1
 		sudo systemctl daemon-reload >/dev/null 2>&1
 		;;
 	    status)
