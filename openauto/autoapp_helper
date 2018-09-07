@@ -23,19 +23,29 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "configure start" >> /tmp/autoapp_helper_command
     sudo touch /tmp/config_in_progress
 
-
     # set disconnect timeout
     echo "Disconnect timeout:${array[3]}" >> /tmp/autoapp_helper_command
-    crankshaft timers disconnect set ${array[3]}
-
+    if [ "$DISCONNECTION_SCREEN_POWEROFF_SECS" != "${array[3]}" ]; then
+        crankshaft timers disconnect set ${array[3]}
+    else
+        echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
+    fi
     # set shutdown timeout
     echo "Shutdown timeout:${array[4]}" >> /tmp/autoapp_helper_command
-    crankshaft timers shutdown set ${array[4]}
+    if [ "$DISCONNECTION_POWEROFF_MINS" != "${array[4]}" ]; then
+        crankshaft timers shutdown set ${array[4]}
+    else
+        echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
+    fi
 
     # set day / night
     echo "Start day:${array[5]}" >> /tmp/autoapp_helper_command
     echo "Start night:${array[6]}" >> /tmp/autoapp_helper_command
-    crankshaft timers daynight ${array[5]} ${array[6]}
+    if [ "$RTC_DAY_START" != "${array[5]}" ] || [ "$RTC_NIGHT_START" != "${array[6]}" ]; then
+        crankshaft timers daynight ${array[5]} ${array[6]}
+    else
+        echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
+    fi
 
     # set general gpio usage # dev mode gpio # invert gpio # x11 gpio # rearcam gpio # android gpio # enable x11 mode # enable flip mode
     echo "GPIO enable:${array[7]}" >> /tmp/autoapp_helper_command
@@ -77,12 +87,16 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "${array[27]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^ENABLE_PAIRABLE=.*/ENABLE_PAIRABLE='$(echo ${array[27]})'/' /boot/crankshaft/crankshaft_env.sh
 
+    # init check
+    pulsechanged=0
+
     # set audio output device
-    echo "Outdio output:${array[15]}" >> /tmp/autoapp_helper_command
+    echo "Autdio output:${array[15]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[15]}" != "No audio output hardware detected!" ]; then
-        pulsedevice=$(echo ${array[15]} | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
-        desc=$(echo ${array[15]} | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
+        current_pulsedevice=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        pulsedevice=$(echo "${array[15]}" | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
+        desc=$(echo "${array[15]}" | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
         echo "Pulsedevice: >$pulsedevice<" > /tmp/set_soundcard
         echo "Desc: >$desc<" >> /tmp/set_soundcard
         samplerate=$(pactl list sinks short | grep $pulsedevice | tail -n1 | awk {'print $6'} | sed 's/Hz//' | sed 's/^ //' | sed 's/ *$//')
@@ -128,16 +142,20 @@ if [ "${array[0]}" == "setparams" ]; then
             sudo sed -i 's/^# Crankshaft detected sample format.*//' /etc/pulse/daemon.conf
             sudo sed -i 's/.*default-sample-format =.*//' /etc/pulse/daemon.conf
             sudo sed -i '/./,/^$/!d' /etc/pulse/daemon.conf
+            sudo systemctl restart pulseaudio
         fi
-        sudo systemctl restart pulseaudio
+        if [ "$current_pulsedevice" != "$pulsedevice" ]; then
+            pulsechanged=1
+        fi
     fi
 
     # set audio input device
     echo "Audio input:${array[16]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[16]}" != "No audio input hardware detected!" ]; then
-        pulsedevice=$(echo ${array[16]} | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
-        desc=$(echo ${array[16]} | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
+        current_pulsedevice=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        pulsedevice=$(echo "${array[16]}" | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
+        desc=$(echo "${array[16]}" | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
         echo "Pulsedevice: >$pulsedevice<" > /tmp/set_mic
         echo "Desc: >$desc<" >> /tmp/set_mic
         if [ ! -z $pulsedevice ]; then
@@ -158,7 +176,19 @@ if [ "${array[0]}" == "setparams" ]; then
             sudo sh -c 'echo "# Crankshaft selected input device" >> /etc/pulse/client.conf'
             sudo sh -c 'echo "# no input selected -> default" >> /etc/pulse/client.conf'
         fi
+        if [ "$current_pulsedevice" != "$pulsedevice" ]; then
+            pulsechanged=1
+        fi
     fi
+
+    # restrt pulse service after hardware change
+    if [ $pulsechanged == 1 ];then
+        echo "Pulseaudio device has changed -> restart pulseaudio service" >> /tmp/autoapp_helper_command
+        sudo systemctl restart pulseaudio
+    else
+        echo "Ignoring change - audio devices not changed" >> /tmp/autoapp_helper_command
+    fi
+
     # set playback volume
     echo "Playback volume:${array[1]}" >> /tmp/autoapp_helper_command
     pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
@@ -279,27 +309,35 @@ if [ "${array[0]}" == "setparams" ]; then
 
     # Enable/Disable Timers
     echo "Timer shutdown disable:${array[20]}" >> /tmp/autoapp_helper_command
-    if [ "${array[20]}" == "1" ]; then
-        crankshaft timers shutdown disable
-    else
-        crankshaft timers shutdown enable
-        if [ ! -f /tmp/dev_mode_enabled ]; then
-            crankshaft timers shutdown start
+    if [ "$DISCONNECTION_POWEROFF_DISABLE" != "${array[20]}" ]; then
+        if [ "${array[20]}" == "1" ]; then
+            crankshaft timers shutdown disable
         else
-            crankshaft timers shutdown stop
+            crankshaft timers shutdown enable
+            if [ ! -f /tmp/dev_mode_enabled ]; then
+                crankshaft timers shutdown start
+            else
+                crankshaft timers shutdown stop
+            fi
         fi
+    else
+        echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
     fi
 
     echo "Timer disconnect disable:${array[21]}" >> /tmp/autoapp_helper_command
-    if [ "${array[21]}" == "1" ]; then
-        crankshaft timers disconnect disable
-    else
-        crankshaft timers disconnect enable
-        if [ ! -f /tmp/dev_mode_enabled ]; then
-            crankshaft timers disconnect start
+    if [ "$DISCONNECTION_SCREEN_POWEROFF_DISABLE" != "${array[21]}" ]; then
+        if [ "${array[21]}" == "1" ]; then
+            crankshaft timers disconnect disable
         else
-            crankshaft timers disconnect stop
+            crankshaft timers disconnect enable
+            if [ ! -f /tmp/dev_mode_enabled ]; then
+                crankshaft timers disconnect start
+            else
+                crankshaft timers disconnect stop
+            fi
         fi
+    else
+        echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
     fi
 
     # clean buffers
