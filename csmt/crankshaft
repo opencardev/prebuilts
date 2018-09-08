@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.3
+version=1.4.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2396,6 +2396,7 @@ if [ ! -z $1 ]; then
 	amixer > /tmp/debuglogs/amixer.output
 	pactl list sinks > /tmp/debuglogs/pa_soundcards
 	pactl list sources > /tmp/debuglogs/pa_sources
+        sudo cp -f /tmp/pulseaudio-debug.log /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_default_input /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_default_output /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /tmp/get_inputs /tmp/debuglogs/ >/dev/null 2>&1
