@@ -142,7 +142,6 @@ if [ "${array[0]}" == "setparams" ]; then
             sudo sed -i 's/^# Crankshaft detected sample format.*//' /etc/pulse/daemon.conf
             sudo sed -i 's/.*default-sample-format =.*//' /etc/pulse/daemon.conf
             sudo sed -i '/./,/^$/!d' /etc/pulse/daemon.conf
-            sudo systemctl restart pulseaudio
         fi
         if [ "$current_pulsedevice" != "$pulsedevice" ]; then
             pulsechanged=1
@@ -184,7 +183,11 @@ if [ "${array[0]}" == "setparams" ]; then
     # restrt pulse service after hardware change
     if [ $pulsechanged == 1 ];then
         echo "Pulseaudio device has changed -> restart pulseaudio service" >> /tmp/autoapp_helper_command
-        sudo systemctl restart pulseaudio
+        if [ -f /tmp/usb_debug_mode ]; then
+            sudo systemctl restart pulseaudio-debug
+        else
+            sudo systemctl restart pulseaudio
+        fi
     else
         echo "Ignoring change - audio devices not changed" >> /tmp/autoapp_helper_command
     fi
