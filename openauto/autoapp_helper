@@ -606,4 +606,19 @@ if [ "$1" == "setunmute" ]; then
     pactl set-sink-mute $pulsedeviceplay 0
 fi
 
+if [ "${array[0]}" == "settime" ]; then
+    hour="${array[1]}"
+    minute="${array[2]}"
+    if [ ${#hour} -lt 2 ]; then
+        hour="0$hour"
+    fi
+    if [ ${#minute} -lt 2 ]; then
+        minute="0$minute"
+    fi
+    echo "$hour $minute" >> /tmp/autoapp_helper_command
+    sudo timedatectl set-ntp 0 # disable sync to allow manual setting
+    sudo timedatectl set-time "$hour:$minute:00" >> /tmp/autoapp_helper_command
+    sudo timedatectl set-ntp 1 # reenable sync
+fi
+
 exit 0
