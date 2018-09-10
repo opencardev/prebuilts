@@ -616,9 +616,11 @@ if [ "${array[0]}" == "settime" ]; then
         minute="0$minute"
     fi
     echo "$hour $minute" >> /tmp/autoapp_helper_command
+    crankshaft filesystem system unlock
     sudo timedatectl set-ntp 0 # disable sync to allow manual setting
     sudo timedatectl set-time "$hour:$minute:00" >> /tmp/autoapp_helper_command
     sudo timedatectl set-ntp 1 # reenable sync
+    crankshaft filesystem system lock
 fi
 
 exit 0
