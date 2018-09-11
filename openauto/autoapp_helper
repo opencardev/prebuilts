@@ -626,7 +626,7 @@ fi
 if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
     sudo chmod 777 /tmp/openauto_wifi_recent.ini
     num=0
-    echo "[recent]" > /tmp/openauto_wifi_recent.ini
+    echo "[Recent]" > /tmp/openauto_wifi_recent.ini
     echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini
     cat /tmp/dnsmasq.leases | awk {'print $3'} | while read -r wificlient; do
 	echo "Entry_$num=$wificlient" >> /tmp/openauto_wifi_recent.ini
