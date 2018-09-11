@@ -623,4 +623,17 @@ if [ "${array[0]}" == "settime" ]; then
     crankshaft filesystem system lock
 fi
 
+if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
+    sudo chmod 777 /tmp/openauto_wifi_recent.ini
+    num=0
+    echo "[recent]" > /tmp/openauto_wifi_recent.ini
+    echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini
+    cat /tmp/dnsmasq.leases | awk {'print $3'} | while read -r wificlient; do
+	echo "Entry_$num=$wificlient" >> /tmp/openauto_wifi_recent.ini
+	num=$((num+1))
+    done
+    entries=$(cat /tmp/openauto_wifi_recent.ini | grep Entry_ | wc -l)
+    sed -i 's|^EntiresCount=.*|EntiresCount='"$entries"'|' /tmp/openauto_wifi_recent.ini
+fi
+
 exit 0
