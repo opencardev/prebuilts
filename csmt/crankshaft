@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.4
+version=1.4.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2409,6 +2409,7 @@ if [ ! -z $1 ]; then
         sudo cp -f /etc/timezone /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /etc/pulse/* /tmp/debuglogs/ >/dev/null 2>&1
         sudo cp -f /boot/crankshaft/button_* /tmp/debuglogs/ >/dev/null 2>&1
+	sudo cp -f /tmp/dnsmasq.log /tmp/debuglogs/ >/dev/null 2>&1
 	sudo /usr/bin/systemd-analyze plot > /tmp/debuglogs/startsequence.svg
 
 	sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
