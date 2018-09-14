@@ -619,6 +619,7 @@ if [ "${array[0]}" == "settime" ]; then
     crankshaft filesystem system unlock
     sudo timedatectl set-ntp 0 # disable sync to allow manual setting
     sudo timedatectl set-time "$hour:$minute:00" >> /tmp/autoapp_helper_command
+    sudo hwclock --systohc
     sudo timedatectl set-ntp 1 # reenable sync
     crankshaft filesystem system lock
 fi
