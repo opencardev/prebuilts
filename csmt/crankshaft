@@ -1,12 +1,9 @@
 #!/bin/bash
 
-version=1.4.5
+version=1.4.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
-if [ -f /boot/crankshaft/crankshaft_env.sh ];then
-    source /boot/crankshaft/crankshaft_env.sh
-fi
 
 CS_BRIGHTNESS_STORE_FILE=/boot/crankshaft/brightness
 CS_BRIGHTNESS_NIGHT_STORE_FILE=/boot/crankshaft/brightness-night
@@ -343,9 +340,7 @@ function cs_rtc() {
     sudo sh -c "echo '# RTC Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=i2c-rtc,'$1 >> /boot/config.txt"
     sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=1/' /boot/crankshaft/crankshaft_env.sh
-    sudo systemctl disable fake-hwclock.service >/dev/null 2>&1
     sudo systemctl enable hwclock-load.service >/dev/null 2>&1
-    sudo systemctl enable hwclock-save.service >/dev/null 2>&1
     sudo systemctl daemon-reload
     echo $2
     if [ ! -z $2 ]; then
@@ -1471,9 +1466,9 @@ if [ ! -z $1 ]; then
 		    cs_echo "---------------------------------------------------------"
 		    sleep 10
 		    # write time from server to hwclock
-		    sudo hwclock -w >/dev/null 2>&1
+		    sudo hwclock --systohc >/dev/null 2>&1
 		    # write time from hwclock to sys
-		    sudo hwclock -s >/dev/null 2>&1
+		    sudo hwclock --hctosys >/dev/null 2>&1
 		    # show result
 		    sudo timedatectl status
 		    cs_echo ""
@@ -1502,8 +1497,6 @@ if [ ! -z $1 ]; then
 		fi
 		cs_check_i2c
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
-		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
-		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl daemon-reload
 		cs_systemro
 		cs_bootro
@@ -1564,7 +1557,6 @@ if [ ! -z $1 ]; then
 		sudo systemctl disable systemd-rfkill.socket >/dev/null 2>&1
 		sudo systemctl disable systemd-timesyncd.service >/dev/null 2>&1
 		sudo systemctl disable hwclock-load.service >/dev/null 2>&1
-		sudo systemctl disable hwclock-save.service >/dev/null 2>&1
 		sudo systemctl disable resize2fs_once.service >/dev/null 2>&1
 		sudo systemctl disable bluetooth.service >/dev/null 2>&1
 		sudo systemctl disable hciuart.service >/dev/null 2>&1
