@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.7
+version=1.4.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1030,16 +1030,21 @@ if [ ! -z $1 ]; then
 			cs_audio_hifiberry "digi"
 			cs_bootro
 			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
+		    elif [ $3 == "digipro" ]; then
+			cs_bootrw
+			cs_audio_hifiberry "digi-pro"
+			cs_bootro
+			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		    elif [ $3 == "amp" ]; then
 			cs_bootrw
 			cs_audio_hifiberry "amp"
 			cs_bootro
 			cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		    else
-			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio hifiberry dac|dacplus|digi|amp${RESET}"
+			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio hifiberry dac|dacplus|digi|digipro|amp${RESET}"
 		    fi
 		else
-		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio hifiberry dac|dacplus|digi|amp${RESET}"
+		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio hifiberry dac|dacplus|digi|digipro|amp${RESET}"
 		fi
 		;;
 	    audioinjector)
@@ -1539,7 +1544,6 @@ if [ ! -z $1 ]; then
 		sudo systemctl enable debugmode.service >/dev/null 2>&1
 		sudo systemctl enable display.service >/dev/null 2>&1
 		sudo systemctl enable user_startup.service >/dev/null 2>&1
-		sudo systemctl enable fake-hwclock.service >/dev/null 2>&1
 		sudo systemctl enable update.service >/dev/null 2>&1
 		sudo systemctl enable usbrestore.service >/dev/null 2>&1
 		sudo systemctl enable usbdetect.service >/dev/null 2>&1

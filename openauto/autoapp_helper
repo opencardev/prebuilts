@@ -265,8 +265,11 @@ if [ "${array[0]}" == "setparams" ]; then
         if [ "${array[19]}" == "Hifiberry - DAC Plus" ]; then
             /usr/local/bin/crankshaft audio hifiberry dacplus
         fi
-        if [ "${array[19]}" == "Hifiberry - DAC Digi" ]; then
+        if [ "${array[19]}" == "Hifiberry - Digi" ]; then
             /usr/local/bin/crankshaft audio hifiberry digi
+        fi
+        if [ "${array[19]}" == "Hifiberry - Digi Pro" ]; then
+            /usr/local/bin/crankshaft audio hifiberry digipro
         fi
         if [ "${array[19]}" == "Hifiberry - DAC Amp" ]; then
             /usr/local/bin/crankshaft audio hifiberry amp
