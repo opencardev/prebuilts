@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.9
+version=1.5.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1697,10 +1697,6 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
-                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
-                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
-                    exit 1
-                fi
 		wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
@@ -1747,10 +1743,6 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
-                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
-                    exit 1
-                fi
 		wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
                 REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
@@ -1781,12 +1773,8 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    openauto)
-                if [ -f /tmp/usb_debug_mode ] || [ $DEBUG_MODE -eq 1 ]; then
-                    cs_echo "ABORT: You are in debug mode. Internet access is only available in dev mode!"
-                    exit 1
-                fi
 		# openauto
-                if [ -z $3 ]; then
+                if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
 		        wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
                     fi
@@ -1807,11 +1795,12 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		else
                     cs_systemrw
+                    sudo systemctl stop openauto
                     sudo killall autoapp >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
 		    # get source file
-                    if [ -z $3 ]; then
+                    if [ ! -z $3 ]; then
                         if [ "$3" == "dev" ]; then
 		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
                         fi
@@ -1830,7 +1819,7 @@ if [ ! -z $1 ]; then
                     cs_systemro
 		fi
 		# autoapp_helper
-                if [ -z $3 ]; then
+                if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
 		        wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
                     fi
@@ -1854,7 +1843,7 @@ if [ ! -z $1 ]; then
                     sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
 		    # get source file
-                    if [ -z $3 ]; then
+                    if [ ! -z $3 ]; then
                         if [ "$3" == "dev" ]; then
 		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
                         fi
@@ -1870,6 +1859,7 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		    cs_echo "OK: autoapp_helper updated."
                     cs_systemro
+                    sudo systemctl start openauto
 		fi
 		;;
 	    *)
