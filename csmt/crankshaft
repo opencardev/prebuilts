@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.4.8
+version=1.4.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1786,7 +1786,13 @@ if [ ! -z $1 ]; then
                     exit 1
                 fi
 		# openauto
-		wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+                if [ -z $3 ]; then
+                    if [ "$3" == "dev" ]; then
+		        wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+                    fi
+                else
+		    wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+                fi
                 REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1805,7 +1811,13 @@ if [ ! -z $1 ]; then
                     sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
 		    # get source file
-		    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+                    if [ -z $3 ]; then
+                        if [ "$3" == "dev" ]; then
+		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
+                        fi
+                    else
+	                sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+                    fi
 		    # check download
 		    LOCAL=`wc -c /usr/local/bin/autoapp.update | awk '{print $1}'`
 		    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
@@ -1818,7 +1830,13 @@ if [ ! -z $1 ]; then
                     cs_systemro
 		fi
 		# autoapp_helper
-		wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+                if [ -z $3 ]; then
+                    if [ "$3" == "dev" ]; then
+		        wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
+                    fi
+                else
+                    wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+                fi
                 REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1836,7 +1854,13 @@ if [ ! -z $1 ]; then
                     sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
 		    # get source file
-		    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+                    if [ -z $3 ]; then
+                        if [ "$3" == "dev" ]; then
+		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+                        fi
+                    else
+		        sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+                    fi
 		    # check download
 		    LOCAL=`wc -c /usr/local/bin/autoapp_helper.update | awk '{print $1}'`
 		    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
