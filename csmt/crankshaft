@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.0
+version=1.5.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1774,6 +1774,8 @@ if [ ! -z $1 ]; then
 		;;
 	    openauto)
 		# openauto
+                sudo systemctl stop openauto
+                sudo killall autoapp >/dev/null 2>&1
                 if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
 		        wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
@@ -1795,8 +1797,6 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		else
                     cs_systemrw
-                    sudo systemctl stop openauto
-                    sudo killall autoapp >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
 		    # get source file
@@ -1859,8 +1859,8 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		    cs_echo "OK: autoapp_helper updated."
                     cs_systemro
-                    sudo systemctl start openauto
 		fi
+                sudo systemctl start openauto
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto${RESET}"
