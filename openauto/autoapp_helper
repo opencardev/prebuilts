@@ -634,14 +634,18 @@ if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
     echo "[Recent]" > /tmp/openauto_wifi_recent.ini
     echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini
     cat /tmp/dnsmasq.leases | awk {'print $3'} | while read -r wificlient; do
-	echo "Entry_$num=$wificlient" >> /tmp/openauto_wifi_recent.ini
-	if [ "$wificlient" != "" ]; then
-	    echo "$wificlient" >> /tmp/temp_recent_list
-	fi
-	num=$((num+1))
+        echo "Entry_$num=$wificlient" >> /tmp/openauto_wifi_recent.ini
+        if [ "$wificlient" != "" ]; then
+            echo "$wificlient" >> /tmp/temp_recent_list
+        fi
+        num=$((num+1))
     done
     entries=$(cat /tmp/openauto_wifi_recent.ini | grep Entry_ | wc -l)
     sed -i 's|^EntiresCount=.*|EntiresCount='"$entries"'|' /tmp/openauto_wifi_recent.ini
+fi
+
+if [ "$1" == "cleansymlinks" ]; then
+    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
 fi
 
 exit 0
