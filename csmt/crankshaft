@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.2
+version=1.5.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1130,30 +1130,30 @@ if [ ! -z $1 ]; then
 	    volume)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "set" ] && [ ! -z $4 ]; then
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			pactl set-sink-volume $pulsedeviceplay $4%
 		    elif [ $3 == "set" ] && [ -z $4 ]; then
 			cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio volume set (0-100)${RESET}"
 		    elif [ $3 == "get" ]; then
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			volume=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			cs_echo "Volume: $volume%"
 		    elif [ $3 == "up" ]; then
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			volume_old=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			pactl set-sink-volume $pulsedeviceplay +5%
 			volume=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			cs_echo "Old volume: $volume_old - New volume: $volume"
 		    elif [ $3 == "down" ]; then
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			volume_old=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			pactl set-sink-volume $pulsedeviceplay -5%
 			volume=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			cs_echo "Old volume: $volume_old - New volume: $volume"
 		    elif [ $3 == "save" ]; then
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			volume=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
-			pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			capvolume=$(pactl list sources | grep -A8 $pulsedevicecap | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 			if [ ! -z $pulsedeviceplay ] && [ ! -z $volume ] && [ ! -z $pulsedevicecap ] && [ ! -z $capvolume ]; then
 			    cs_bootrw
@@ -1167,7 +1167,7 @@ if [ ! -z $1 ]; then
 			fi
 		    elif [ $3 == "restore" ]; then
 			volume=$(cat /boot/crankshaft/volume)
-			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			if [ ! -z $pulsedeviceplay ] && [ ! -z $volume ]; then
 			    # unmute
 			    pactl set-sink-mute $pulsedeviceplay 0
@@ -1187,7 +1187,7 @@ if [ ! -z $1 ]; then
 			fi
 			# set capture volume
 			capvolume=$(cat /boot/crankshaft/capvolume)
-			pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+			pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
 			if [ ! -z $pulsedevicecap ] && [ ! -z $capvolume ]; then
 			    # unmute
 			    pactl set-source-mute $pulsedevicecap 0
@@ -1244,8 +1244,32 @@ if [ ! -z $1 ]; then
 		    cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio alsastate save|restore${RESET}"
 		fi
 		;;
+	    test)
+		cs_echo "You have 5 seconds speak time - after this you will hear the playback..."
+		pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+		pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+		if [ ! -z $pulsedeviceplay ] && [ ! -z $pulsedevicecap ]; then
+		    parecord -d $pulsedevicecap /tmp/parecord.wav &
+		    cs_echo ""
+		    cs_echo "Speak now!"
+		    timer=1
+		    while [ $timer -lt 6 ]; do
+			sleep 1
+			cs_echo ""
+			cs_echo "Time left: $((6-$timer))"
+			timer=$((timer+1))
+		    done
+		    sudo killall parecord
+		    cs_echo ""
+		    cs_echo "Playback..."
+		    paplay -d $pulsedeviceplay /tmp/parecord.wav
+		else
+		    cs_echo ""
+		    cs_echo "pulseaudio sink or source not configured in client.conf! -> abort."
+		fi
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio rpi|hifiberry|audioinjector|clean|volume${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft audio rpi|hifiberry|audioinjector|clean|volume|test${RESET}"
 		;;
 	esac
     fi
@@ -2614,6 +2638,7 @@ else
     echo "    |- alsastate"
     echo "               |- save        - Save current alsa state"
     echo "               |- restore     - Restore saved alsa state"
+    echo "    |- test                   - Record 5 seconds with mic and playpack it"
     echo ""
     echo "settings                      Handle Openauto Settings"
     echo "       |- save                - Save Openauto.ini"
