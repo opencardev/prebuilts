@@ -94,7 +94,7 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "Autdio output:${array[15]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[15]}" != "No audio output hardware detected!" ]; then
-        current_pulsedevice=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        current_pulsedevice=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
         pulsedevice=$(echo "${array[15]}" | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
         desc=$(echo "${array[15]}" | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
         echo "Pulsedevice: >$pulsedevice<" > /tmp/set_soundcard
@@ -152,7 +152,7 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "Audio input:${array[16]}" >> /tmp/autoapp_helper_command
     # only change client.conf if device is not dummy output
     if [ "${array[16]}" != "No audio input hardware detected!" ]; then
-        current_pulsedevice=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        current_pulsedevice=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
         pulsedevice=$(echo "${array[16]}" | cut -d"|" -f2- | sed 's/^ //' | sed 's/ *$//')
         desc=$(echo "${array[16]}" | cut -d"|" -f1 | sed 's/^ //' | sed 's/ *$//')
         echo "Pulsedevice: >$pulsedevice<" > /tmp/set_mic
@@ -194,7 +194,7 @@ if [ "${array[0]}" == "setparams" ]; then
 
     # set playback volume
     echo "Playback volume:${array[1]}" >> /tmp/autoapp_helper_command
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     # unmute
     pactl set-sink-mute $pulsedeviceplay 0
     # set volume
@@ -211,7 +211,7 @@ if [ "${array[0]}" == "setparams" ]; then
 
     # set capture volume
     echo "Capture volume:${array[2]}" >> /tmp/autoapp_helper_command
-    pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     # unmute
     pactl set-source-mute $pulsedevicecap 0
     # set volume
@@ -373,11 +373,11 @@ if [ "$1" == "getparams" ]; then
     echo "get system values start" >> /tmp/autoapp_helper_command
 
     # get master volume
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     levelplay=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 
     # get capture volume
-    pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     levelcap=$(pactl list sources | grep -A8 $pulsedevicecap | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
 
     # get disconnect timeout
@@ -415,7 +415,7 @@ if [ "$1" == "getparams" ]; then
         done
         # default output
         sudo rm /tmp/get_default_output > /dev/null 2>&1
-        pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
         if [ ! -z $pulsedeviceplay ]; then
             defaultplay="$(cat /tmp/get_outputs | grep "$pulsedeviceplay")"
             if [ "$defaultplay" != "" ]; then
@@ -442,7 +442,7 @@ if [ "$1" == "getparams" ]; then
         done
         # default input
         sudo rm /tmp/get_default_input > /dev/null 2>&1
-        pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
         if [ ! -z $pulsedevicecap ]; then
             defaultcap="$(cat /tmp/get_inputs | grep "$pulsedevicecap")"
             if [ "$defaultcap" != "" ]; then
@@ -517,7 +517,7 @@ fi
 
 if [ "$1" == "restorevolumes" ]; then
     # set playback volume
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     if [ ! -z $pulsedeviceplay ]; then
         # unmute
         pactl set-sink-mute $pulsedeviceplay 0
@@ -541,7 +541,7 @@ if [ "$1" == "restorevolumes" ]; then
     fi
 
     # set capture volume
-    pulsedevicecap=$(cat /etc/pulse/client.conf | grep 'default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     if [ ! -z $pulsedevicecap ]; then
         # unmute
         pactl set-source-mute $pulsedevicecap 0
@@ -586,26 +586,26 @@ fi
 
 if [ "$1" == "getvolume" ]; then
     # get soundcard volume
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     levelplay=$(pactl list sinks | grep -A8 $pulsedeviceplay | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
     echo "$levelplay" > /tmp/get_volume_device
 fi
 
 if [ "$1" == "setvolume" ]; then
     # set soundcard volume
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     pactl set-sink-volume $pulsedeviceplay $2%
 fi
 
 if [ "$1" == "setmute" ]; then
     # mute soundcard
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     pactl set-sink-mute $pulsedeviceplay 1
 fi
 
 if [ "$1" == "setunmute" ]; then
     # unmute soundcard
-    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep 'default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+    pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
     pactl set-sink-mute $pulsedeviceplay 0
 fi
 
