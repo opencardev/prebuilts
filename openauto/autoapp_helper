@@ -404,58 +404,6 @@ if [ "$1" == "getparams" ]; then
     # cpu temp
     temp=$(/opt/vc/bin/vcgencmd measure_temp | cut -d= -f2)
 
-    # get outputs
-    sudo rm /tmp/get_outputs > /dev/null 2>&1
-    # check for pulseaudio dummy output
-    nodevice=$(pactl list sinks | grep 'Description: Dummy Output' | sed 's/"//g' | sed 's/\t//g' | sed 's/ //g' | sed 's/://g' | tail -n1)
-    if [ -z $nodevice ]; then
-        pactl list sinks | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
-            desc=$(pactl list sinks | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
-            echo "[$desc] | $padevice" >> /tmp/get_outputs
-        done
-        # default output
-        sudo rm /tmp/get_default_output > /dev/null 2>&1
-        pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
-        if [ ! -z $pulsedeviceplay ]; then
-            defaultplay="$(cat /tmp/get_outputs | grep "$pulsedeviceplay")"
-            if [ "$defaultplay" != "" ]; then
-                echo "$defaultplay" > /tmp/get_default_output
-            else
-                echo "not selected" > /tmp/get_default_output
-                echo "not selected" >> /tmp/get_outputs
-            fi
-        fi
-    else
-        echo "No audio output hardware detected!" > /tmp/get_outputs
-        echo "No audio output hardware detected!" > /tmp/get_default_output
-    fi
-
-
-    # get inputs
-    sudo rm /tmp/get_inputs > /dev/null 2>&1
-    # check in put device available
-    nodevice=$(arecord -l | sed 's/"//g' | sed 's/\t//g' | sed 's/ //g' | sed 's/://g' | tail -n1)
-    if [ ! -z $nodevice ]; then
-        pactl list sources | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
-            desc=$(pactl list sources | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
-            echo "[$desc] | $padevice" >> /tmp/get_inputs
-        done
-        # default input
-        sudo rm /tmp/get_default_input > /dev/null 2>&1
-        pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
-        if [ ! -z $pulsedevicecap ]; then
-            defaultcap="$(cat /tmp/get_inputs | grep "$pulsedevicecap")"
-            if [ "$defaultcap" != "" ]; then
-                echo "$defaultcap" > /tmp/get_default_input
-            else
-                echo "not selected" > /tmp/get_default_input
-                echo "not selected" >> /tmp/get_inputs
-            fi
-        fi
-    else
-        echo "No audio input hardware detected!" > /tmp/get_inputs
-        echo "No audio input hardware detected!" > /tmp/get_default_inputs
-    fi
 
     # versiontring
     versionstring=$(cat /etc/crankshaft.build)
@@ -509,9 +457,72 @@ if [ "$1" == "getparams" ]; then
     fi
 
     # create return value string
-    sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#"
     echo "get system values done" >> /tmp/autoapp_helper_command
+    echo "-------------------------------------" >> /tmp/autoapp_helper_command
+fi
+
+if [ "$1" == "getoutputs" ]; then
+    echo "-------------------------------------" >> /tmp/autoapp_helper_command
+    echo "get outputs start" >> /tmp/autoapp_helper_command
+    # get outputs
+    sudo rm /tmp/get_outputs > /dev/null 2>&1
+    # check for pulseaudio dummy output
+    nodevice=$(pactl list sinks | grep 'Description: Dummy Output' | sed 's/"//g' | sed 's/\t//g' | sed 's/ //g' | sed 's/://g' | tail -n1)
+    if [ -z $nodevice ]; then
+        pactl list sinks | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
+            desc=$(pactl list sinks | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
+            echo "[$desc] | $padevice"
+            echo "[$desc] | $padevice"  >> /tmp/get_outputs
+        done
+        # default output
+        sudo rm /tmp/get_default_output > /dev/null 2>&1
+        pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        if [ ! -z $pulsedeviceplay ]; then
+            defaultplay="$(cat /tmp/get_outputs | grep "$pulsedeviceplay")"
+            if [ "$defaultplay" != "" ]; then
+                echo "$defaultplay" > /tmp/get_default_output
+            else
+                echo "not selected" > /tmp/get_default_output
+            fi
+        fi
+    else
+        echo "No audio output hardware detected!"
+        echo "No audio output hardware detected!" > /tmp/get_default_output
+    fi
+    echo "get outputs done" >> /tmp/autoapp_helper_command
+    echo "-------------------------------------" >> /tmp/autoapp_helper_command
+fi
+
+if [ "$1" == "getinputs" ]; then
+    echo "-------------------------------------" >> /tmp/autoapp_helper_command
+    echo "get outputs start" >> /tmp/autoapp_helper_command
+    # get inputs
+    sudo rm /tmp/get_inputs > /dev/null 2>&1
+    # check in put device available
+    nodevice=$(arecord -l | sed 's/"//g' | sed 's/\t//g' | sed 's/ //g' | sed 's/://g' | tail -n1)
+    if [ ! -z $nodevice ]; then
+        pactl list sources | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
+            desc=$(pactl list sources | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
+            echo "[$desc] | $padevice"
+            echo "[$desc] | $padevice" >> /tmp/get_inputs
+        done
+        # default input
+        sudo rm /tmp/get_default_input > /dev/null 2>&1
+        pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
+        if [ ! -z $pulsedevicecap ]; then
+            defaultcap="$(cat /tmp/get_inputs | grep "$pulsedevicecap")"
+            if [ "$defaultcap" != "" ]; then
+                echo "$defaultcap" > /tmp/get_default_input
+            else
+                echo "not selected" > /tmp/get_default_input
+            fi
+        fi
+    else
+        echo "No audio input hardware detected!"
+        echo "No audio input hardware detected!" > /tmp/get_default_inputs
+    fi
+    echo "get inputs done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
 
@@ -569,7 +580,7 @@ if [ "$1" == "getbrightnessvalues" ]; then
     else
         CUSTOM=0
     fi
-    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#"
 fi
 
 if [ "$1" == "startcustombrightness" ]; then
@@ -646,6 +657,14 @@ fi
 
 if [ "$1" == "cleansymlinks" ]; then
     find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
+fi
+
+if [ "$1" == "test" ]; then
+    echo "bla1"
+    echo "bla2"
+    echo "bla3"
+    echo "bla4"
+    echo "bla5"
 fi
 
 exit 0
