@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.4
+version=1.5.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -831,7 +831,7 @@ if [ ! -z $1 ]; then
 			cs_systemro
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-				if [ ! -f /tmp/btdevice ]; then
+				if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				    sudo systemctl start disconnect.timer >/dev/null 2>&1
 				fi
 			    fi
@@ -877,7 +877,7 @@ if [ ! -z $1 ]; then
 			fi
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-				if [ ! -f /tmp/btdevice ]; then
+				if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				    sudo systemctl start shutdown.timer >/dev/null 2>&1
 				fi
 			    fi
@@ -933,12 +933,12 @@ if [ ! -z $1 ]; then
 		    fi
 		    if [ ! -f /tmp/android_device ]; then
 			if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-			    if [ ! -f /tmp/btdevice ]; then
+			    if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				sudo systemctl start shutdown.timer >/dev/null 2>&1
 			    fi
 			fi
 			if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-			    if [ ! -f /tmp/btdevice ]; then
+			    if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				sudo systemctl start disconnect.timer >/dev/null 2>&1
 			    fi
 			fi
