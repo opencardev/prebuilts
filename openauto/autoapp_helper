@@ -350,6 +350,14 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "${array[30]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^SKIP_USB_DETECT=.*/SKIP_USB_DETECT='$(echo ${array[30]})'/' /boot/crankshaft/crankshaft_env.sh
 
+    # sdcard overclock
+    echo "${array[31]}" >> /tmp/autoapp_helper_command
+    if [ "${array[31]}" == "enabled" ]; then
+        crankshaft sdcard ocenable
+    else
+        crankshaft sdcard ocdisable
+    fi
+
     # clean buffers
     sync
 
@@ -460,8 +468,16 @@ if [ "$1" == "getparams" ]; then
         BTTYPE="none"
     fi
 
+    # get current rtc of present
+    sdoc=$(cat /boot/config.txt | grep '^dtparam=sdtweak')
+    if [ "$sdoc" != "" ]; then
+	sdoc="enabled"
+    else
+	sdoc="disabled"
+    fi
+
     # create return value string
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${SKIP_USB_DETECT}#"
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${SKIP_USB_DETECT}#${sdoc}#"
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
