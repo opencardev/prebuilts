@@ -469,7 +469,7 @@ if [ "$1" == "getparams" ]; then
     fi
 
     # get current rtc of present
-    sdoc=$(cat /boot/config.txt | grep '^dtparam=sdtweak')
+    sdoc=$(cat /boot/config.txt | grep '^dtoverlay=sdtweak')
     if [ "$sdoc" != "" ]; then
 	sdoc="enabled"
     else
