@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.5
+version=1.5.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2072,18 +2072,18 @@ if [ ! -z $1 ]; then
 	    ocenable)
 		cs_bootrw
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
-		sudo sed -i 's/^dtparam=sdtweak.*//' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=sdtweak.*//' /boot/config.txt
 		sudo sed -i 's/^# Overclocking Setup.*//' /boot/config.txt
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
 		sudo sh -c "echo '' >> /boot/config.txt"
 		sudo sh -c "echo '# Overclocking Setup' >> /boot/config.txt"
-		sudo sh -c "echo 'dtparam=sdtweak,overclock_50=84' >> /boot/config.txt"
+		sudo sh -c "echo 'dtoverlay=sdtweak,overclock_50=80' >> /boot/config.txt"
 		cs_bootro
 		;;
 	    ocdisable)
 		cs_bootrw
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
-		sudo sed -i 's/^dtparam=sdhost.*//' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=sdtweak.*//' /boot/config.txt
 		sudo sed -i 's/^# Overclocking Setup.*//' /boot/config.txt
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
 		cs_bootro
