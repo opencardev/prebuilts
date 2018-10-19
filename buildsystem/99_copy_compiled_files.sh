@@ -34,7 +34,8 @@ fi
 # Create compressed qt5
 QTVERSON=`cat /usr/local/qt5/lib/pkgconfig/Qt5Core.pc | grep Version: | cut -d: -f2 | sed 's/ //g' | sed 's/\.//g'`
 
-tar --exclude='/usr/local/qt5/lib' -cvf $HOME/BINARY_FILES/Qt_${QTVERSON}_OpenGLES2.tar.xz /usr/local/qt5 
-tar -cvf $HOME/BINARY_FILES/Qt_${QTVERSON}_libs_OpenGLES2.tar.xz /usr/local/qt5/lib
+tar -cvf $HOME/BINARY_FILES/Qt_${QTVERSON}_OpenGLES2.tar.xz /usr/local/qt5
+split -b 50m -d $HOME/BINARY_FILES/Qt_${QTVERSON}_OpenGLES2.tar.xz "$HOME/BINARY_FILES/Qt_${QTVERSON}_OpenGLES2.tar.xz.part"
+rm $HOME/BINARY_FILES/Qt_${QTVERSON}_OpenGLES2.tar.xz
 
 cd $HOME
