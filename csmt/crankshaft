@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.3
+version=1.5.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -437,7 +437,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "temp" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|debuglog|version${RESET}"
 	exit 0
@@ -831,7 +831,7 @@ if [ ! -z $1 ]; then
 			cs_systemro
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-				if [ ! -f /tmp/btdevice ]; then
+				if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				    sudo systemctl start disconnect.timer >/dev/null 2>&1
 				fi
 			    fi
@@ -877,7 +877,7 @@ if [ ! -z $1 ]; then
 			fi
 			if [ ! -f /tmp/android_device ]; then
 			    if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-				if [ ! -f /tmp/btdevice ]; then
+				if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				    sudo systemctl start shutdown.timer >/dev/null 2>&1
 				fi
 			    fi
@@ -933,12 +933,12 @@ if [ ! -z $1 ]; then
 		    fi
 		    if [ ! -f /tmp/android_device ]; then
 			if [ $DISCONNECTION_POWEROFF_DISABLE -eq 0 ]; then
-			    if [ ! -f /tmp/btdevice ]; then
+			    if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				sudo systemctl start shutdown.timer >/dev/null 2>&1
 			    fi
 			fi
 			if [ $DISCONNECTION_SCREEN_POWEROFF_DISABLE -eq 0 ]; then
-			    if [ ! -f /tmp/btdevice ]; then
+			    if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
 				sudo systemctl start disconnect.timer >/dev/null 2>&1
 			    fi
 			fi
@@ -2066,6 +2066,34 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #sdcard
+    if [ $1 == "sdcard" ]; then
+	case $2 in
+	    ocenable)
+		cs_bootrw
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=sdtweak.*//' /boot/config.txt
+		sudo sed -i 's/^# Overclocking Setup.*//' /boot/config.txt
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sh -c "echo '' >> /boot/config.txt"
+		sudo sh -c "echo '# Overclocking Setup' >> /boot/config.txt"
+		sudo sh -c "echo 'dtoverlay=sdtweak,overclock_50=80' >> /boot/config.txt"
+		cs_bootro
+		;;
+	    ocdisable)
+		cs_bootrw
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo sed -i 's/^dtoverlay=sdtweak.*//' /boot/config.txt
+		sudo sed -i 's/^# Overclocking Setup.*//' /boot/config.txt
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+		cs_bootro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft sdcard ocenable|ocdisable${RESET}"
+		;;
+	esac
+    fi
+
     #custom buttons
     if [ $1 == "buttons" ]; then
 	case $2 in
@@ -2699,6 +2727,9 @@ else
     echo ""
     echo "buttons                       Custom Button stuff"
     echo "      |- create x             - Create the default config file for button (1-8)"
+    echo "sdcard                        SDCard stuff"
+    echo "     |- ocenable              - Enable overclocking for sdcard reader - this can cause demanged sdcards!"
+    echo "     |- ocdisable             - Disable overclocking for sdcard reader"
     echo ""
     echo "bluetooth                     Bluetooth realted stuff"
     echo "        |- save               - Save paired bluetooth devices"
