@@ -600,7 +600,8 @@ if [ "$1" == "getbrightnessvalues" ]; then
     else
         CUSTOM=0
     fi
-    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#"
+    sudo rm /tmp/br_values > /dev/null 2>&1
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
 fi
 
 if [ "$1" == "startcustombrightness" ]; then
