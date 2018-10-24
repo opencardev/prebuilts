@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.7
+version=1.5.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1291,6 +1291,15 @@ if [ ! -z $1 ]; then
 			sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
 		    fi
 		    touch /tmp/blankscreen
+		fi
+		;;
+	    toggle)
+		if [ "$(cat /sys/class/backlight/rpi_backlight/bl_power)" == "0" ]; then
+		    sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+		    sudo vcgencmd display_power 0 >/dev/null 2>&1
+		else
+		    sudo sh -c 'echo 0 > /sys/class/backlight/rpi_backlight/bl_power'
+		    sudo vcgencmd display_power 1 >/dev/null 2>&1
 		fi
 		;;
 	    autodetect)
@@ -2592,6 +2601,7 @@ else
     echo "display                       Handle Display"
     echo "      |- on                   - Enable Display"
     echo "      |- off                  - Disable Display"
+    echo "      |- toggle               - Toggle between display on/off"
     echo "      |- autodetect           - Try to detect display by usb touch controller and setup"
     echo "                                (this feature is not ready for use - only prepared for further versions!)"
     echo "      |- forcelcd             - Force Using Original RPi Display Via DSI"
