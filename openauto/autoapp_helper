@@ -680,4 +680,9 @@ if [ "$1" == "cleansymlinks" ]; then
     find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
 fi
 
+if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
+    ln -s /media/USBDRIVES/$2/Music/*/ /media/MYMEDIA/
+    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
+fi
+
 exit 0
