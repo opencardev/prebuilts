@@ -6,6 +6,7 @@ if [ -f /boot/crankshaft/crankshaft_env.sh ];then
     source /boot/crankshaft/crankshaft_env.sh
 fi
 
+sudo chmod 666 /tmp/autoapp_helper_command
 echo "$@" >> /tmp/autoapp_helper_command
 
 if [ -z $1 ]; then
@@ -677,12 +678,12 @@ if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
 fi
 
 if [ "$1" == "cleansymlinks" ]; then
-    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
+    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
 fi
 
 if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
     ln -s /media/USBDRIVES/$2/Music/*/ /media/MYMEDIA/
-    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || rm "{}"' -- "{}" \;
+    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
 fi
 
 exit 0
