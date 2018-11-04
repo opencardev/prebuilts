@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.9
+version=1.5.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1283,7 +1283,6 @@ if [ ! -z $1 ]; then
 		    sudo sh -c 'echo 0 > /sys/class/backlight/rpi_backlight/bl_power'
 		fi
 		rm -f /tmp/blankscreen
-		sudo systemctl stop tap2wake
 		;;
 	    off)
 		if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
@@ -1292,18 +1291,15 @@ if [ ! -z $1 ]; then
 			sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
 		    fi
 		    touch /tmp/blankscreen
-		    sudo systemctl start tap2wake
 		fi
 		;;
 	    toggle)
 		if [ "$(cat /sys/class/backlight/rpi_backlight/bl_power)" == "0" ]; then
 		    sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
 		    sudo vcgencmd display_power 0 >/dev/null 2>&1
-		    sudo systemctl start tap2wake
 		else
 		    sudo sh -c 'echo 0 > /sys/class/backlight/rpi_backlight/bl_power'
 		    sudo vcgencmd display_power 1 >/dev/null 2>&1
-		    sudo systemctl stop tap2wake
 		fi
 		;;
 	    autodetect)
