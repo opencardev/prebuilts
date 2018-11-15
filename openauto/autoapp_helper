@@ -478,7 +478,8 @@ if [ "$1" == "getparams" ]; then
     fi
 
     # create return value string
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${SKIP_USB_DETECT}#${sdoc}#"
+    sudo rm /tmp/return_value > /dev/null 2>&1
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${SKIP_USB_DETECT}#${sdoc}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
@@ -493,7 +494,6 @@ if [ "$1" == "getoutputs" ]; then
     if [ -z $nodevice ]; then
         pactl list sinks | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
             desc=$(pactl list sinks | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
-            echo "[$desc] | $padevice"
             echo "[$desc] | $padevice"  >> /tmp/get_outputs
         done
         # default output
@@ -505,10 +505,11 @@ if [ "$1" == "getoutputs" ]; then
                 echo "$defaultplay" > /tmp/get_default_output
             else
                 echo "not selected" > /tmp/get_default_output
+                echo "not selected" >> /tmp/get_outputs
             fi
         fi
     else
-        echo "No audio output hardware detected!"
+        echo "No audio output hardware detected!" > /tmp/get_outputs
         echo "No audio output hardware detected!" > /tmp/get_default_output
     fi
     echo "get outputs done" >> /tmp/autoapp_helper_command
@@ -525,7 +526,6 @@ if [ "$1" == "getinputs" ]; then
     if [ ! -z $nodevice ]; then
         pactl list sources | grep Name: | grep -v .monitor | grep -v bluez | sed 's/\t//g' | sed 's/Name: //' | while read -r padevice; do
             desc=$(pactl list sources | grep -A30 'Name: '$padevice | grep alsa.id | sed 's/\t//g' | cut -d= -f2 | sed 's/"//g' | sed 's/^ //' | sed 's/ *$//')
-            echo "[$desc] | $padevice"
             echo "[$desc] | $padevice" >> /tmp/get_inputs
         done
         # default input
@@ -537,11 +537,12 @@ if [ "$1" == "getinputs" ]; then
                 echo "$defaultcap" > /tmp/get_default_input
             else
                 echo "not selected" > /tmp/get_default_input
+                echo "not selected" >> /tmp/get_inputs
             fi
         fi
     else
-        echo "No audio input hardware detected!"
-        echo "No audio input hardware detected!" > /tmp/get_default_inputs
+        echo "No audio input hardware detected!" > /tmp/get_inputs
+        echo "No audio input hardware detected!" > /tmp/get_default_input
     fi
     echo "get inputs done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
