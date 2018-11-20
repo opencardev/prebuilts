@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.5.8
+version=1.5.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -676,10 +676,23 @@ if [ ! -z $1 ]; then
 			else
 			    cs_echo "Custom Brightness Command is missing!"
 			fi
-			cs_echo "Custom Brightness Level Set To Min: $3"
+			cs_echo "Custom Brightness Level Set To: $3"
 		    elif [ -f ${BRIGHTNESS_FILE} ]; then
-			echo $3 > ${BRIGHTNESS_FILE}
-			cs_echo "Brightness Level Set To Min: $3"
+			LVL=`cat ${BRIGHTNESS_FILE}`
+			if [ $3 -lt ${LVL} ]; then
+			    while [ ${LVL} -gt $3 ];do
+				LVL=$((${LVL}-1))
+				echo ${LVL} > ${BRIGHTNESS_FILE}
+				sleep 0.01
+			    done
+			elif [ $3 -gt ${LVL} ]; then
+			    while [ ${LVL} -lt $3 ];do
+				LVL=$((${LVL}+1))
+				echo ${LVL} > ${BRIGHTNESS_FILE}
+				sleep 0.01
+			    done
+			fi
+			cs_echo "Brightness Level Set To: $3"
 		    else
 			cs_echo "No device brightness file present"
 		    fi
