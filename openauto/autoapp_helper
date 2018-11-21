@@ -355,6 +355,14 @@ if [ "${array[0]}" == "setparams" ]; then
         crankshaft sdcard ocdisable
     fi
 
+    # lightsensor
+    echo "${array[31]}" >> /tmp/autoapp_helper_command
+    if [ "${array[31]}" == "enabled" ]; then
+        crankshaft lightsensor enable
+    else
+        crankshaft lightsensor disable
+    fi
+
     # clean buffers
     sync
 
@@ -468,14 +476,21 @@ if [ "$1" == "getparams" ]; then
     # get current rtc of present
     sdoc=$(cat /boot/config.txt | grep '^dtoverlay=sdtweak')
     if [ "$sdoc" != "" ]; then
-	sdoc="enabled"
+        sdoc="enabled"
     else
-	sdoc="disabled"
+        sdoc="disabled"
+    fi
+
+    # lightsensor
+    if [ -f /etc/cs_lightsensor ]; then
+        lightsensor="enabled"
+    else
+        lightsensor="disabled"
     fi
 
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
