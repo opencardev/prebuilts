@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.0
+version=1.6.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -491,11 +491,25 @@ if [ ! -z $1 ]; then
 				fi
 				cs_echo "Custom Brightness Level Night Restored"
 			    else
-				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-				if [ -z ${LVL} ]; then
-				    LVL=${BR_MAX}
+				LVLNEW=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
+				LVL=`cat ${BRIGHTNESS_FILE}`
+				if [ -z ${LVLNEW} ]; then
+				    LVLNEW=${BR_MAX}
 				fi
-				echo ${LVL} > ${BRIGHTNESS_FILE}
+
+				if [ ${LVLNEW} -lt ${LVL} ]; then
+				    while [ ${LVL} -gt ${LVLNEW} ];do
+					LVL=$((${LVL}-1))
+					echo ${LVL} > ${BRIGHTNESS_FILE}
+					sleep 0.005
+				    done
+				elif [ ${LVLNEW} -gt ${LVL} ]; then
+				    while [ ${LVL} -lt ${LVLNEW} ];do
+					LVL=$((${LVL}+1))
+					echo ${LVL} > ${BRIGHTNESS_FILE}
+					sleep 0.005
+				    done
+				fi
 				cs_echo "Brightness Level Night Restored"
 			    fi
 		        else
@@ -619,7 +633,20 @@ if [ ! -z $1 ]; then
 		    fi
 		    cs_echo "Custom Brightness Level Set To Min: ${BR_MIN}"
 		elif [ -f ${BRIGHTNESS_FILE} ]; then
-		    echo ${BR_MIN} > ${BRIGHTNESS_FILE}
+		    LVL=`cat ${BRIGHTNESS_FILE}`
+		    if [ ${BR_MIN} -lt ${LVL} ]; then
+		        while [ ${LVL} -gt ${BR_MIN} ];do
+			    LVL=$((${LVL}-1))
+			    echo ${LVL} > ${BRIGHTNESS_FILE}
+			    sleep 0.005
+			done
+		    elif [ ${BR_MIN} -gt ${LVL} ]; then
+			while [ ${LVL} -lt ${BR_MIN} ];do
+			    LVL=$((${LVL}+1))
+			    echo ${LVL} > ${BRIGHTNESS_FILE}
+			    sleep 0.005
+			done
+		    fi
 		    cs_echo "Brightness Level Set To Min: ${BR_MIN}"
 		else
 		    cs_echo "No device brightness file present"
@@ -635,7 +662,20 @@ if [ ! -z $1 ]; then
 		    fi
 		    cs_echo "Custom Brightness Level Set To Max: ${BR_MAX}"
 		elif [ -f ${BRIGHTNESS_FILE} ]; then
-		    echo ${BR_MAX} > ${BRIGHTNESS_FILE}
+		    LVL=`cat ${BRIGHTNESS_FILE}`
+		    if [ ${BR_MAX} -lt ${LVL} ]; then
+		        while [ ${LVL} -gt ${BR_MAX} ];do
+			    LVL=$((${LVL}-1))
+			    echo ${LVL} > ${BRIGHTNESS_FILE}
+			    sleep 0.005
+			done
+		    elif [ ${BR_MAX} -gt ${LVL} ]; then
+			while [ ${LVL} -lt ${BR_MAX} ];do
+			    LVL=$((${LVL}+1))
+			    echo ${LVL} > ${BRIGHTNESS_FILE}
+			    sleep 0.005
+			done
+		    fi
 		    cs_echo "Brightness Level Set To Max: ${BR_MAX}"
 		else
 		    cs_echo "No device brightness file present"
@@ -683,13 +723,13 @@ if [ ! -z $1 ]; then
 			    while [ ${LVL} -gt $3 ];do
 				LVL=$((${LVL}-1))
 				echo ${LVL} > ${BRIGHTNESS_FILE}
-				sleep 0.01
+				sleep 0.005
 			    done
 			elif [ $3 -gt ${LVL} ]; then
 			    while [ ${LVL} -lt $3 ];do
 				LVL=$((${LVL}+1))
 				echo ${LVL} > ${BRIGHTNESS_FILE}
-				sleep 0.01
+				sleep 0.005
 			    done
 			fi
 			cs_echo "Brightness Level Set To: $3"
