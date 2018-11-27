@@ -69,6 +69,7 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^ANDROID_PIN=.*/ANDROID_PIN='$(echo ${array[12]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^START_X11=.*/START_X11='$(echo ${array[13]})'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^FLIP_SCREEN=.*/FLIP_SCREEN='$(echo ${array[14]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DAYNIGHT_PIN=.*/DAYNIGHT_PIN='$(echo ${array[32]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
 
     # set debug mode
     echo "Debug mode:${array[22]}" >> /tmp/autoapp_helper_command
@@ -362,10 +363,6 @@ if [ "${array[0]}" == "setparams" ]; then
     else
         crankshaft lightsensor disable
     fi
-
-    # set debug mode
-    echo "Day/Night pin:${array[32]}" >> /tmp/autoapp_helper_command
-    sudo sed -i 's/^DAYNIGHT_PIN=.*/DAYNIGHT_PIN='$(echo ${array[32]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
 
     # clean buffers
     sync
