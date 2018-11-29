@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.2
+version=1.6.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -437,7 +437,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|lightsensor|debuglog|version${RESET}"
 	exit 0
@@ -828,6 +828,90 @@ if [ ! -z $1 ]; then
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft filesystem system|boot${RESET}"
+		;;
+	esac
+    fi
+
+    # system
+    if [ $1 == "system" ]; then
+	case $2 in
+	    unlock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_systemrw
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    lock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_systemro
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft system lock|unlock${RESET}"
+		;;
+	esac
+    fi
+
+    # boot
+    if [ $1 == "boot" ]; then
+	case $2 in
+	    unlock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_bootrw
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    lock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_bootro
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    check)
+		sudo umount /dev/mmcblk0p1
+		if [ ! $(cat /proc/mounts | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    sudo fsck -f -y /dev/mmcblk0p1
+		    sudo mount /dev/mmcblk0p1 /boot
+		else
+		    cs_echo "Sorry! The drive can't be unmounted. Abort."
+		    cs_echo ""
+		fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft boot lock|unlock|check${RESET}"
 		;;
 	esac
     fi
@@ -2731,6 +2815,15 @@ else
     echo "         |- system"
     echo "                 |- lock      - Re-Mount / As Read Only"
     echo "                 |- unlock    - Re-Mount / As Read Write"
+    echo ""
+    echo "boot                          Handle Filesystem"
+    echo "   |- lock                    - Re-Mount /boot As Read Only"
+    echo "   |- unlock                  - Re-Mount /boot As Read Write"
+    echo "   |- check                   - Check And Repair Filesystem"
+    echo ""
+    echo "system                        Handle Filesystem"
+    echo "     |- lock                  - Re-Mount / As Read Only"
+    echo "     |- unlock                - Re-Mount / As Read Write"
     echo ""
     echo "timers                        Handle Timers"
     echo "     |- status                - List Current Timers"
