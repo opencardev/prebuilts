@@ -699,4 +699,8 @@ if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
     find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
 fi
 
+if [ "$1" == "usbreset" ]; then
+    sudo usbreset $(cat /tmp/android_device | head -n1) &
+fi
+
 exit 0
