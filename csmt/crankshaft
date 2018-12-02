@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.3
+version=1.6.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2647,7 +2647,10 @@ if [ ! -z $1 ]; then
 	sudo cp -f /boot/crankshaft/crankshaft_env.sh /tmp/debuglogs/
 	sudo cp -f /tmp/wpa_supplicant.conf /tmp/debuglogs/
 	sudo cp -f /etc/hostapd/hostapd.conf /tmp/debuglogs/
+	sudo cp -f /tmp/temp_recent_list /tmp/debuglogs/ >/dev/null 2>&1
+	sudo cp -f /tmp/hotspot_active /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/openauto.ini /tmp/debuglogs/
+	sudo cp -f /home/pi/openauto_wifi_recent.ini /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.xinitrc /tmp/debuglogs/
 	cat /etc/crankshaft.build > /tmp/debuglogs/cs-version
 	cat /etc/crankshaft.date >> /tmp/debuglogs/cs-version
