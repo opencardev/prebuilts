@@ -707,4 +707,8 @@ if [ "$1" == "cleanentityexit" ]; then
     sudo rm /tmp/entityexit > /dev/null 2>&1
 fi
 
+if [ "$1" == "createentityexit" ]; then
+    touch /tmp/entityexit > /dev/null 2>&1
+fi
+
 exit 0
