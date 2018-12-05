@@ -371,6 +371,9 @@ if [ "${array[0]}" == "setparams" ]; then
     crankshaft filesystem boot lock
     crankshaft filesystem system lock
 
+    # restart gpiotrigger
+    sudo systemctl restart gpiotrigger
+
     # Done
     echo "configure done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
