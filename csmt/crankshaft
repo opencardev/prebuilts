@@ -1,12 +1,10 @@
 #!/bin/bash
 
-version=1.6.5
+version=1.6.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
 
-CS_BRIGHTNESS_STORE_FILE=/boot/crankshaft/brightness
-CS_BRIGHTNESS_NIGHT_STORE_FILE=/boot/crankshaft/brightness-night
 CS_VOLUME_STORE_FILE=/boot/crankshaft/volume
 
 # FS functions default mode - ignored on dev mode
@@ -453,18 +451,18 @@ if [ ! -z $1 ]; then
 		    cs_bootrw
                     if [ -f /tmp/night_mode_enabled ]; then
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    sudo sed -i 's/BR_NIGHT=.*/BR_NIGHT='$(cat /tmp/custombrightness)'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Custom Brightness Level Night Saved"
 			else
-			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    sudo sed -i 's/BR_NIGHT=.*/BR_NIGHT='$(cat ${BRIGHTNESS_FILE})'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Brightness Level Night Saved"
 			fi
                     else
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_STORE_FILE}
+			    sudo sed -i 's/BR_DAY=.*/BR_DAY='$(cat /tmp/custombrightness)'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Custom Brightness Level Day Saved"
 			else
-			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
+			    sudo sed -i 's/BR_DAY=.*/BR_DAY='$(cat ${BRIGHTNESS_FILE})'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Brightness Level Day Saved"
 			fi
 		    fi
@@ -476,92 +474,59 @@ if [ ! -z $1 ]; then
 	    restore)
 		if [ -f ${BRIGHTNESS_FILE} ] || [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 		    if [ -f /tmp/night_mode_enabled ]; then
-		        if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-				if [ -z ${LVL} ]; then
-				    LVL=${BR_MAX}
-				fi
-				echo ${LVL} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Night Restored"
+			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			    echo ${BR_NIGHT} > /tmp/custombrightness
+			    sudo chmod 666 /tmp/custombrightness
+			    if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			        ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 			    else
-				LVLNEW=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-				LVL=`cat ${BRIGHTNESS_FILE}`
-				if [ -z ${LVLNEW} ]; then
-				    LVLNEW=${BR_MAX}
-				fi
-
-				if [ ${LVLNEW} -lt ${LVL} ]; then
-				    while [ ${LVL} -gt ${LVLNEW} ];do
-					LVL=$((${LVL}-1))
-					echo ${LVL} > ${BRIGHTNESS_FILE}
-					sleep 0.005
-				    done
-				elif [ ${LVLNEW} -gt ${LVL} ]; then
-				    while [ ${LVL} -lt ${LVLNEW} ];do
-					LVL=$((${LVL}+1))
-					echo ${LVL} > ${BRIGHTNESS_FILE}
-					sleep 0.005
-				    done
-				fi
-				cs_echo "Brightness Level Night Restored"
+			        cs_echo "Custom Brightness Command is missing!"
 			    fi
-		        else
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				echo ${BR_MAX} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Night Restored by default value"
-			    else
-				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Night Restored by default value"
+			    cs_echo "Custom Brightness Level Night Restored"
+			else
+			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    if [ ${BR_NIGHT} -lt ${LVL} ]; then
+			        while [ ${LVL} -gt ${BR_NIGHT} ];do
+				    LVL=$((${LVL}-1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
+			    elif [ ${BR_NIGHT} -gt ${LVL} ]; then
+				while [ ${LVL} -lt ${BR_NIGHT} ];do
+				    LVL=$((${LVL}+1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
 			    fi
-		        fi
+			    cs_echo "Brightness Level Night Restored"
+			fi
                     else
-		        if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-				if [ -z ${LVL} ]; then
-				    LVL=${BR_MAX}
-				fi
-				echo ${LVL} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Day Restored"
+			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			    echo ${BR_DAY} > /tmp/custombrightness
+			    sudo chmod 666 /tmp/custombrightness
+			    if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+				${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 			    else
-				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-				echo ${LVL} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Day Restored"
+				cs_echo "Custom Brightness Command is missing!"
 			    fi
-		        else
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				echo ${BR_MAX} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Day Restored by default value"
-			    else
-				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Day Restored by default value"
+			    cs_echo "Custom Brightness Level Day Restored"
+			else
+			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    if [ ${BR_DAY} -lt ${LVL} ]; then
+			        while [ ${LVL} -gt ${BR_DAY} ];do
+				    LVL=$((${LVL}-1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
+			    elif [ ${BR_DAY} -gt ${LVL} ]; then
+				while [ ${LVL} -lt ${BR_DAY} ];do
+				    LVL=$((${LVL}+1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
 			    fi
-		        fi
+			    cs_echo "Brightness Level Day Restored"
+			fi
                     fi
 		else
 		    cs_echo "No device brightness file present"

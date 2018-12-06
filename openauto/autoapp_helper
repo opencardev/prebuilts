@@ -71,6 +71,10 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^FLIP_SCREEN=.*/FLIP_SCREEN='$(echo ${array[14]})'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^DAYNIGHT_PIN=.*/DAYNIGHT_PIN='$(echo ${array[32]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
 
+    # brightness values
+    sudo sed -i 's/^BR_DAY=.*/BR_DAY='$(echo ${array[33]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^BR_NIGHT=.*/BR_NIGHT='$(echo ${array[34]})'/' /boot/crankshaft/crankshaft_env.sh
+
     # set debug mode
     echo "Debug mode:${array[22]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^DEBUG_MODE=.*/DEBUG_MODE='$(echo ${array[22]})'/' /boot/crankshaft/crankshaft_env.sh
@@ -618,7 +622,7 @@ if [ "$1" == "getbrightnessvalues" ]; then
         CUSTOM=0
     fi
     sudo rm /tmp/br_values > /dev/null 2>&1
-    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#$BR_DAY#$BR_NIGHT#$CUSTOM#" > /tmp/br_values
 fi
 
 if [ "$1" == "startcustombrightness" ]; then
