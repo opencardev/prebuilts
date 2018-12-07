@@ -1,12 +1,10 @@
 #!/bin/bash
 
-version=1.6.1
+version=1.6.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
 
-CS_BRIGHTNESS_STORE_FILE=/boot/crankshaft/brightness
-CS_BRIGHTNESS_NIGHT_STORE_FILE=/boot/crankshaft/brightness-night
 CS_VOLUME_STORE_FILE=/boot/crankshaft/volume
 
 # FS functions default mode - ignored on dev mode
@@ -437,7 +435,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|lightsensor|debuglog|version${RESET}"
 	exit 0
@@ -453,18 +451,18 @@ if [ ! -z $1 ]; then
 		    cs_bootrw
                     if [ -f /tmp/night_mode_enabled ]; then
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    sudo sed -i 's/BR_NIGHT=.*/BR_NIGHT='$(cat /tmp/custombrightness)'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Custom Brightness Level Night Saved"
 			else
-			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_NIGHT_STORE_FILE}
+			    sudo sed -i 's/BR_NIGHT=.*/BR_NIGHT='$(cat ${BRIGHTNESS_FILE})'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Brightness Level Night Saved"
 			fi
                     else
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-			    sudo sh -c 'cat /tmp/custombrightness > '${CS_BRIGHTNESS_STORE_FILE}
+			    sudo sed -i 's/BR_DAY=.*/BR_DAY='$(cat /tmp/custombrightness)'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Custom Brightness Level Day Saved"
 			else
-			    sudo sh -c 'cat '${BRIGHTNESS_FILE}' > '${CS_BRIGHTNESS_STORE_FILE}
+			    sudo sed -i 's/BR_DAY=.*/BR_DAY='$(cat ${BRIGHTNESS_FILE})'/' /boot/crankshaft/crankshaft_env.sh
 			    cs_echo "Brightness Level Day Saved"
 			fi
 		    fi
@@ -476,92 +474,59 @@ if [ ! -z $1 ]; then
 	    restore)
 		if [ -f ${BRIGHTNESS_FILE} ] || [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
 		    if [ -f /tmp/night_mode_enabled ]; then
-		        if [ -f ${CS_BRIGHTNESS_NIGHT_STORE_FILE} ]; then
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				LVL=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-				if [ -z ${LVL} ]; then
-				    LVL=${BR_MAX}
-				fi
-				echo ${LVL} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Night Restored"
+			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			    echo ${BR_NIGHT} > /tmp/custombrightness
+			    sudo chmod 666 /tmp/custombrightness
+			    if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			        ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 			    else
-				LVLNEW=`cat ${CS_BRIGHTNESS_NIGHT_STORE_FILE}`
-				LVL=`cat ${BRIGHTNESS_FILE}`
-				if [ -z ${LVLNEW} ]; then
-				    LVLNEW=${BR_MAX}
-				fi
-
-				if [ ${LVLNEW} -lt ${LVL} ]; then
-				    while [ ${LVL} -gt ${LVLNEW} ];do
-					LVL=$((${LVL}-1))
-					echo ${LVL} > ${BRIGHTNESS_FILE}
-					sleep 0.005
-				    done
-				elif [ ${LVLNEW} -gt ${LVL} ]; then
-				    while [ ${LVL} -lt ${LVLNEW} ];do
-					LVL=$((${LVL}+1))
-					echo ${LVL} > ${BRIGHTNESS_FILE}
-					sleep 0.005
-				    done
-				fi
-				cs_echo "Brightness Level Night Restored"
+			        cs_echo "Custom Brightness Command is missing!"
 			    fi
-		        else
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				echo ${BR_MAX} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Night Restored by default value"
-			    else
-				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Night Restored by default value"
+			    cs_echo "Custom Brightness Level Night Restored"
+			else
+			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    if [ ${BR_NIGHT} -lt ${LVL} ]; then
+			        while [ ${LVL} -gt ${BR_NIGHT} ];do
+				    LVL=$((${LVL}-1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
+			    elif [ ${BR_NIGHT} -gt ${LVL} ]; then
+				while [ ${LVL} -lt ${BR_NIGHT} ];do
+				    LVL=$((${LVL}+1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
 			    fi
-		        fi
+			    cs_echo "Brightness Level Night Restored"
+			fi
                     else
-		        if [ -f ${CS_BRIGHTNESS_STORE_FILE} ]; then
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-				if [ -z ${LVL} ]; then
-				    LVL=${BR_MAX}
-				fi
-				echo ${LVL} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Day Restored"
+			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+			    echo ${BR_DAY} > /tmp/custombrightness
+			    sudo chmod 666 /tmp/custombrightness
+			    if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
+				${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 			    else
-				LVL=`cat ${CS_BRIGHTNESS_STORE_FILE}`
-				echo ${LVL} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Day Restored"
+				cs_echo "Custom Brightness Command is missing!"
 			    fi
-		        else
-			    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				echo ${BR_MAX} > /tmp/custombrightness
-				sudo chmod 666 /tmp/custombrightness
-				if [ -f ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-				    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
-				else
-				    cs_echo "Custom Brightness Command is missing!"
-				fi
-				cs_echo "Custom Brightness Level Day Restored by default value"
-			    else
-				echo ${BR_MAX} > ${BRIGHTNESS_FILE}
-				cs_echo "Brightness Level Day Restored by default value"
+			    cs_echo "Custom Brightness Level Day Restored"
+			else
+			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    if [ ${BR_DAY} -lt ${LVL} ]; then
+			        while [ ${LVL} -gt ${BR_DAY} ];do
+				    LVL=$((${LVL}-1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
+			    elif [ ${BR_DAY} -gt ${LVL} ]; then
+				while [ ${LVL} -lt ${BR_DAY} ];do
+				    LVL=$((${LVL}+1))
+				    echo ${LVL} > ${BRIGHTNESS_FILE}
+				    sleep 0.005
+				done
 			    fi
-		        fi
+			    cs_echo "Brightness Level Day Restored"
+			fi
                     fi
 		else
 		    cs_echo "No device brightness file present"
@@ -828,6 +793,90 @@ if [ ! -z $1 ]; then
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft filesystem system|boot${RESET}"
+		;;
+	esac
+    fi
+
+    # system
+    if [ $1 == "system" ]; then
+	case $2 in
+	    unlock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_systemrw
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    lock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_systemro
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft system lock|unlock${RESET}"
+		;;
+	esac
+    fi
+
+    # boot
+    if [ $1 == "boot" ]; then
+	case $2 in
+	    unlock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_bootrw
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    lock)
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "Before: read-only"
+		else
+		    cs_echo "Before: read-write"
+		fi
+		cs_bootro
+		cs_echo ""
+		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    cs_echo "After : read-only"
+		else
+		    cs_echo "After : read-write"
+		fi
+		;;
+	    check)
+		sudo umount /dev/mmcblk0p1
+		if [ ! $(cat /proc/mounts | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
+		    sudo fsck -f -y /dev/mmcblk0p1
+		    sudo mount /dev/mmcblk0p1 /boot
+		else
+		    cs_echo "Sorry! The drive can't be unmounted. Abort."
+		    cs_echo ""
+		fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft boot lock|unlock|check${RESET}"
 		;;
 	esac
     fi
@@ -1335,6 +1384,9 @@ if [ ! -z $1 ]; then
 		if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
 		    sudo sh -c 'echo 0 > /sys/class/backlight/rpi_backlight/bl_power'
 		fi
+		if [ -f /tmp/custombrightness ]; then
+		    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
+		fi
 		rm -f /tmp/blankscreen
 		;;
 	    off)
@@ -1342,6 +1394,9 @@ if [ ! -z $1 ]; then
 		    sudo vcgencmd display_power 0 >/dev/null 2>&1
 		    if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
 			sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+		    fi
+		    if [ -f /tmp/custombrightness ]; then
+			${CUSTOM_BRIGHTNESS_COMMAND} 0
 		    fi
 		    touch /tmp/blankscreen
 		fi
@@ -2359,6 +2414,18 @@ if [ ! -z $1 ]; then
 		    SHOW_IGNITION="--"
 		fi
 
+		if [ ${DAYNIGHT_PIN} -ne 0 ]; then
+		    DAYNIGHT=$(gpio -g read $DAYNIGHT_PIN)
+		    if [ ${#DAYNIGHT_PIN} -ne 2 ]; then
+			SHOW_DAYNIGHT="0"$DAYNIGHT_PIN
+		    else
+			SHOW_DAYNIGHT=$DAYNIGHT_PIN
+		    fi
+		else
+		    DAYNIGHT=0
+		    SHOW_DAYNIGHT="--"
+		fi
+
 		cs_echo "${YELLOW}${BOLD}Dev Mode${RESET}"
 		cs_echo "---------------------------------------------------------------"
 		if [ "$SHOW_DEV" == "--" ]; then
@@ -2427,6 +2494,20 @@ if [ ! -z $1 ]; then
 		    fi
 		fi
 		cs_echo "GPIO: $SHOW_IGNITION - State: $STATETEXT"
+
+		cs_echo ""
+		cs_echo "${YELLOW}${BOLD}Daynight State${RESET}"
+		cs_echo "---------------------------------------------------------------"
+		if [ "$SHOW_DAYNIGHT" == "--" ]; then
+		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
+		else
+		    if [ $DAYNIGHT -eq 1 ]; then
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
+		    else
+			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    fi
+		fi
+		cs_echo "GPIO: $SHOW_DAYNIGHT - State: $STATETEXT"
 		;;
 	    all)
 		ARRAY=( 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 )
@@ -2537,7 +2618,10 @@ if [ ! -z $1 ]; then
 	sudo cp -f /boot/crankshaft/crankshaft_env.sh /tmp/debuglogs/
 	sudo cp -f /tmp/wpa_supplicant.conf /tmp/debuglogs/
 	sudo cp -f /etc/hostapd/hostapd.conf /tmp/debuglogs/
+	sudo cp -f /tmp/temp_recent_list /tmp/debuglogs/ >/dev/null 2>&1
+	sudo cp -f /tmp/hotspot_active /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/openauto.ini /tmp/debuglogs/
+	sudo cp -f /home/pi/openauto_wifi_recent.ini /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.xinitrc /tmp/debuglogs/
 	cat /etc/crankshaft.build > /tmp/debuglogs/cs-version
 	cat /etc/crankshaft.date >> /tmp/debuglogs/cs-version
@@ -2705,6 +2789,15 @@ else
     echo "         |- system"
     echo "                 |- lock      - Re-Mount / As Read Only"
     echo "                 |- unlock    - Re-Mount / As Read Write"
+    echo ""
+    echo "boot                          Handle Filesystem"
+    echo "   |- lock                    - Re-Mount /boot As Read Only"
+    echo "   |- unlock                  - Re-Mount /boot As Read Write"
+    echo "   |- check                   - Check And Repair Filesystem"
+    echo ""
+    echo "system                        Handle Filesystem"
+    echo "     |- lock                  - Re-Mount / As Read Only"
+    echo "     |- unlock                - Re-Mount / As Read Write"
     echo ""
     echo "timers                        Handle Timers"
     echo "     |- status                - List Current Timers"

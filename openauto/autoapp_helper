@@ -69,6 +69,25 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^ANDROID_PIN=.*/ANDROID_PIN='$(echo ${array[12]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^START_X11=.*/START_X11='$(echo ${array[13]})'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^FLIP_SCREEN=.*/FLIP_SCREEN='$(echo ${array[14]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DAYNIGHT_PIN=.*/DAYNIGHT_PIN='$(echo ${array[32]} | sed 's/- - -/0/')'/' /boot/crankshaft/crankshaft_env.sh
+
+    # brightness values
+    sudo sed -i 's/^BR_DAY=.*/BR_DAY='$(echo ${array[33]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^BR_NIGHT=.*/BR_NIGHT='$(echo ${array[34]})'/' /boot/crankshaft/crankshaft_env.sh
+
+    # tsl2561 values
+    sudo sed -i 's/^LUX_LEVEL_1=.*/LUX_LEVEL_1='$(echo ${array[35]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_1=.*/DISP_BRIGHTNESS_1='$(echo ${array[36]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_2=.*/LUX_LEVEL_2='$(echo ${array[37]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_2=.*/DISP_BRIGHTNESS_2='$(echo ${array[38]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_3=.*/LUX_LEVEL_3='$(echo ${array[39]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_3=.*/DISP_BRIGHTNESS_3='$(echo ${array[40]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_4=.*/LUX_LEVEL_4='$(echo ${array[41]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_4=.*/DISP_BRIGHTNESS_4='$(echo ${array[42]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_5=.*/LUX_LEVEL_5='$(echo ${array[43]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_5=.*/DISP_BRIGHTNESS_5='$(echo ${array[44]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^TSL2561_CHECK_INTERVAL=.*/TSL2561_CHECK_INTERVAL='$(echo ${array[45]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^TSL2561_DAYNIGHT_ON_STEP=.*/TSL2561_DAYNIGHT_ON_STEP='$(echo ${array[46]})'/' /boot/crankshaft/crankshaft_env.sh
 
     # set debug mode
     echo "Debug mode:${array[22]}" >> /tmp/autoapp_helper_command
@@ -370,6 +389,9 @@ if [ "${array[0]}" == "setparams" ]; then
     crankshaft filesystem boot lock
     crankshaft filesystem system lock
 
+    # restart gpiotrigger
+    sudo systemctl restart gpiotrigger
+
     # Done
     echo "configure done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
@@ -490,7 +512,7 @@ if [ "$1" == "getparams" ]; then
 
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
@@ -614,7 +636,9 @@ if [ "$1" == "getbrightnessvalues" ]; then
         CUSTOM=0
     fi
     sudo rm /tmp/br_values > /dev/null 2>&1
-    echo "$BR_MIN#$BR_MAX#$BR_STEP#$CUSTOM#" > /tmp/br_values
+    echo "$BR_MIN#$BR_MAX#$BR_STEP#$BR_DAY#$BR_NIGHT#$CUSTOM#" > /tmp/br_values
+    sudo rm /tmp/tsl2561_values > /dev/null 2>&1
+    echo "$LUX_LEVEL_1#$DISP_BRIGHTNESS_1#$LUX_LEVEL_2#$DISP_BRIGHTNESS_2#$LUX_LEVEL_3#$DISP_BRIGHTNESS_3#$LUX_LEVEL_4#$DISP_BRIGHTNESS_4#$LUX_LEVEL_5#$DISP_BRIGHTNESS_5#$TSL2561_CHECK_INTERVAL#$TSL2561_DAYNIGHT_ON_STEP#" > /tmp/tsl2561_values
 fi
 
 if [ "$1" == "startcustombrightness" ]; then
@@ -696,6 +720,11 @@ fi
 if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
     ln -s /media/USBDRIVES/$2/Music/*/ /media/MYMEDIA/
     find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
+fi
+
+if [ "$1" == "usbreset" ] && [ -f /tmp/android_device ]; then
+
+    sudo usbreset $(cat /tmp/android_device | head -n1) > /dev/null 2>&1
 fi
 
 exit 0

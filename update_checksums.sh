@@ -19,3 +19,7 @@ cd ..
 cd udev
 md5sum $(basename 51-android.rules) > 51-android.rules.md5
 cd ..
+
+cd usbreset
+md5sum $(basename usbreset) > usbreset.md5
+cd ..
