@@ -75,6 +75,20 @@ if [ "${array[0]}" == "setparams" ]; then
     sudo sed -i 's/^BR_DAY=.*/BR_DAY='$(echo ${array[33]})'/' /boot/crankshaft/crankshaft_env.sh
     sudo sed -i 's/^BR_NIGHT=.*/BR_NIGHT='$(echo ${array[34]})'/' /boot/crankshaft/crankshaft_env.sh
 
+    # tsl2561 values
+    sudo sed -i 's/^LUX_LEVEL_1=.*/LUX_LEVEL_1='$(echo ${array[35]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_1=.*/DISP_BRIGHTNESS_1='$(echo ${array[36]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_2=.*/LUX_LEVEL_2='$(echo ${array[37]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_2=.*/DISP_BRIGHTNESS_2='$(echo ${array[38]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_3=.*/LUX_LEVEL_3='$(echo ${array[39]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_3=.*/DISP_BRIGHTNESS_3='$(echo ${array[40]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_4=.*/LUX_LEVEL_4='$(echo ${array[41]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_4=.*/DISP_BRIGHTNESS_4='$(echo ${array[42]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^LUX_LEVEL_5=.*/LUX_LEVEL_5='$(echo ${array[43]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^DISP_BRIGHTNESS_5=.*/DISP_BRIGHTNESS_5='$(echo ${array[44]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^TSL2561_CHECK_INTERVAL=.*/TSL2561_CHECK_INTERVAL='$(echo ${array[45]})'/' /boot/crankshaft/crankshaft_env.sh
+    sudo sed -i 's/^TSL2561_DAYNIGHT_ON_STEP=.*/TSL2561_DAYNIGHT_ON_STEP='$(echo ${array[46]})'/' /boot/crankshaft/crankshaft_env.sh
+
     # set debug mode
     echo "Debug mode:${array[22]}" >> /tmp/autoapp_helper_command
     sudo sed -i 's/^DEBUG_MODE=.*/DEBUG_MODE='$(echo ${array[22]})'/' /boot/crankshaft/crankshaft_env.sh
@@ -623,6 +637,8 @@ if [ "$1" == "getbrightnessvalues" ]; then
     fi
     sudo rm /tmp/br_values > /dev/null 2>&1
     echo "$BR_MIN#$BR_MAX#$BR_STEP#$BR_DAY#$BR_NIGHT#$CUSTOM#" > /tmp/br_values
+    sudo rm /tmp/tsl2561_values > /dev/null 2>&1
+    echo "$LUX_LEVEL_1#$DISP_BRIGHTNESS_1#$LUX_LEVEL_2#$DISP_BRIGHTNESS_2#$LUX_LEVEL_3#$DISP_BRIGHTNESS_3#$LUX_LEVEL_4#$DISP_BRIGHTNESS_4#$LUX_LEVEL_5#$DISP_BRIGHTNESS_5#$TSL2561_CHECK_INTERVAL#$TSL2561_DAYNIGHT_ON_STEP#" > /tmp/tsl2561_values
 fi
 
 if [ "$1" == "startcustombrightness" ]; then
