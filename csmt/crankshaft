@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.6
+version=1.6.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -26,18 +26,6 @@ function cs_systemrw() {
 function cs_systemro() {
     if [ ! -f /tmp/dev_mode_enabled ] ; then
 	sudo mount -o remount,ro /
-    fi
-}
-csmt_log() {
-    logger "CSMT: $1"
-    if [ ! -z $2 ];then
-	logger "CSMT: $2"
-    fi
-    if [ ! -z $3 ];then
-	logger "CSMT: $3"
-    fi
-    if [ ! -z $4 ];then
-	logger "CSMT: $4"
     fi
 }
 
@@ -429,6 +417,10 @@ function cs_echo() {
     PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
     if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
 	echo $1
+    else
+	logger "CSMT-LOGGER: --------------------------------------------------------------------"
+	logger "CSMT-LOGGER: $1"
+	logger "CSMT-LOGGER: --------------------------------------------------------------------"
     fi
 }
 
@@ -485,6 +477,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "Custom Brightness Level Night Restored"
 			else
 			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    cs_echo "Start Restore Brightness Level Night - Current: ${LVL}"
 			    if [ ${BR_NIGHT} -lt ${LVL} ]; then
 			        while [ ${LVL} -gt ${BR_NIGHT} ];do
 				    LVL=$((${LVL}-1))
@@ -498,7 +491,7 @@ if [ ! -z $1 ]; then
 				    sleep 0.005
 				done
 			    fi
-			    cs_echo "Brightness Level Night Restored"
+			    cs_echo "Brightness Level Night Restored: ${LVL}"
 			fi
                     else
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -512,6 +505,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "Custom Brightness Level Day Restored"
 			else
 			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    cs_echo "Start Restore Brightness Level Day - Current: ${LVL}"
 			    if [ ${BR_DAY} -lt ${LVL} ]; then
 			        while [ ${LVL} -gt ${BR_DAY} ];do
 				    LVL=$((${LVL}-1))
@@ -525,7 +519,7 @@ if [ ! -z $1 ]; then
 				    sleep 0.005
 				done
 			    fi
-			    cs_echo "Brightness Level Day Restored"
+			    cs_echo "Brightness Level Day Restored: ${LVL}"
 			fi
                     fi
 		else
@@ -721,7 +715,6 @@ if [ ! -z $1 ]; then
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemrw
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -734,7 +727,6 @@ if [ ! -z $1 ]; then
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemro
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -756,7 +748,6 @@ if [ ! -z $1 ]; then
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootrw
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -769,7 +760,6 @@ if [ ! -z $1 ]; then
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootro
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -807,7 +797,6 @@ if [ ! -z $1 ]; then
 		    cs_echo "Before: read-write"
 		fi
 		cs_systemrw
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -821,7 +810,6 @@ if [ ! -z $1 ]; then
 		    cs_echo "Before: read-write"
 		fi
 		cs_systemro
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -844,7 +832,6 @@ if [ ! -z $1 ]; then
 		    cs_echo "Before: read-write"
 		fi
 		cs_bootrw
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -858,7 +845,6 @@ if [ ! -z $1 ]; then
 		    cs_echo "Before: read-write"
 		fi
 		cs_bootro
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -2753,8 +2739,12 @@ if [ ! -z $1 ]; then
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
     fi
-    cs_echo ""
-    cs_echo "Done."
+
+    if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
+	cs_echo ""
+	cs_echo "Done."
+    fi
+
 else
     echo ""
     echo "crankshaft known commands:"
