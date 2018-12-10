@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.8
+version=1.6.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1828,7 +1828,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
-		wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+		sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1874,7 +1874,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-		wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
                 REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1909,10 +1909,10 @@ if [ ! -z $1 ]; then
                 sudo killall autoapp >/dev/null 2>&1
                 if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
-		        wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		        sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
                     fi
                 else
-		    wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
                 fi
                 REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
@@ -1952,10 +1952,10 @@ if [ ! -z $1 ]; then
 		# autoapp_helper
                 if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
-		        wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
+		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
                     fi
                 else
-                    wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+                    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
                 fi
                 REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
