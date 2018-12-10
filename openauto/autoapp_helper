@@ -650,8 +650,9 @@ fi
 
 if [ "$1" == "enablepairing" ]; then
     touch /tmp/enable_pairing
-    sudo bt-adapter --set PairableTimeout 120
-    sudo bt-adapter --set Pairable 1
+    sudo bt-adapter --set Pairable 1 > /dev/null 2>&1
+    sudo bt-adapter --set PairableTimeout 120 > /dev/null 2>&1
+    log_echo "Set bluetooth adapter pairable for 120 seconds"
     sleep 2
     sudo rm -f /tmp/enable_pairing
 fi

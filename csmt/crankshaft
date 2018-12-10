@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.7
+version=1.6.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2725,6 +2725,9 @@ if [ ! -z $1 ]; then
 
 	# Modules
 	sudo cp -f /etc/modules /tmp/debuglogs/ >/dev/null 2>&1
+
+	# i2c devices
+	sudo i2cdetect -y 1 > /tmp/debuglogs/i2c-devices.log
 
 	# Finish
 	sudo chmod 666 /tmp/debuglogs/*
