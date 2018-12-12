@@ -8,7 +8,7 @@ sudo rm -rf $HOME/qt511_build
 
 # Create build folders
 mkdir -p $HOME/qt511/src
-mkdir -p $HOME/qt511
+mkdir -p $HOME/qt511_build
 
 # Check source packages
 cd $HOME/qt511
