@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.9
+version=1.7.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -427,9 +427,9 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|lightsensor|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|splash|lightsensor|debuglog|version${RESET}"
 	exit 0
     fi
 
@@ -2567,6 +2567,30 @@ if [ ! -z $1 ]; then
     fi
 
     #lightsensor
+    if [ $1 == "splash" ]; then
+	case $2 in
+	    animation)
+		cs_systemrw
+		sudo plymouth-set-default-theme csnganimation
+		cs_systemro
+		;;
+	    classic)
+		cs_systemrw
+		sudo plymouth-set-default-theme crankshaft
+		cs_systemro
+		;;
+	    custom)
+		cs_systemrw
+		sudo plymouth-set-default-theme custom
+		cs_systemro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft splash animation|classic|custom${RESET}"
+		;;
+	esac
+    fi
+
+    #lightsensor
     if [ $1 == "lightsensor" ]; then
 	case $2 in
 	    enable)
@@ -2921,6 +2945,11 @@ else
     echo "lightsensor                   Brightness control and day/night controlled by lightsensor"
     echo "     |- enable                - Enable support for tsl2561 i2c light sensor"
     echo "     |- disable               - Disable support for tsl2561 i2c light sensor"
+    echo ""
+    echo "splash                        Set plymouth boot splash theme"
+    echo "     |- animation             - Enable animated plymouth boot splash"
+    echo "     |- classic               - Enable classic plymouth boot splash"
+    echo "     |- custom                - Enable custom plymouth boot splash"
     echo ""
     echo "update                        Handle Updates"
     echo "     |- udev                  - Check And Update udev Rules For Device Detection"

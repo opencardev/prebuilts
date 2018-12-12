@@ -377,6 +377,16 @@ if [ "${array[0]}" == "setparams" ]; then
         crankshaft sdcard ocdisable
     fi
 
+    # splash
+    echo "${array[48]}" >> /tmp/autoapp_helper_command
+    if [ "${array[48]}" == "0" ]; then
+        crankshaft splash animation
+    elif [ "${array[48]}" == "1" ]; then
+        crankshaft splash classic
+    elif [ "${array[48]}" == "2" ]; then
+        crankshaft splash custom
+    fi
+
     # lightsensor
     echo "${array[31]}" >> /tmp/autoapp_helper_command
     if [ "${array[31]}" == "enabled" ]; then
@@ -513,9 +523,12 @@ if [ "$1" == "getparams" ]; then
         lightsensor="disabled"
     fi
 
+    # plymouth theme
+    plymouththeme=$(cat /etc/plymouth/plymouthd.conf | grep '^Theme=' | cut -d= -f2) > /dev/null 2>&1
+
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#${RTC_DAYNIGHT}#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#${RTC_DAYNIGHT}#$plymouththeme#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
