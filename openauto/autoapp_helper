@@ -23,6 +23,7 @@ if [ "${array[0]}" == "setparams" ]; then
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
     echo "configure start" >> /tmp/autoapp_helper_command
     sudo touch /tmp/config_in_progress
+    sudo touch /tmp/keeprw
 
     # set disconnect timeout
     echo "Disconnect timeout:${array[3]}" >> /tmp/autoapp_helper_command
@@ -397,6 +398,8 @@ if [ "${array[0]}" == "setparams" ]; then
 
     # clean buffers
     sync
+
+    sudo rm /tmp/keeprw
 
     # close filesystems
     crankshaft filesystem boot lock
