@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.0
+version=1.7.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -24,7 +24,7 @@ function cs_systemrw() {
     fi
 }
 function cs_systemro() {
-    if [ ! -f /tmp/dev_mode_enabled ] ; then
+    if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /
     fi
 }
