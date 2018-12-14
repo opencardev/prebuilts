@@ -717,7 +717,6 @@ if [ "${array[0]}" == "settime" ]; then
 fi
 
 if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
-    sudo chmod 777 /tmp/openauto_wifi_recent.ini
     sudo rm -f /tmp/temp_recent_list
     num=0
     echo "[Recent]" > /tmp/openauto_wifi_recent.ini
@@ -731,6 +730,7 @@ if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
     done
     entries=$(cat /tmp/openauto_wifi_recent.ini | grep Entry_ | wc -l)
     sed -i 's|^EntiresCount=.*|EntiresCount='"$entries"'|' /tmp/openauto_wifi_recent.ini
+    sudo chmod 666 /tmp/openauto_wifi_recent.ini
 fi
 
 if [ "$1" == "cleansymlinks" ]; then
