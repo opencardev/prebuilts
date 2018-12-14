@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.1
+version=1.7.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -14,7 +14,7 @@ function cs_bootrw () {
     fi
 }
 function cs_bootro() {
-    if [ ! -f /tmp/dev_mode_enabled ] ; then
+    if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /boot
     fi
 }
@@ -709,6 +709,7 @@ if [ ! -z $1 ]; then
 	    system)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
+			cs_echo "Reqeust: unlock system"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
@@ -721,6 +722,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
+			cs_echo "Reqeust: lock system"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
@@ -742,6 +744,7 @@ if [ ! -z $1 ]; then
 	    boot)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
+			cs_echo "Reqeust: unlock boot"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
@@ -754,6 +757,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
+			cs_echo "Reqeust: lock boot"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
@@ -791,6 +795,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "system" ]; then
 	case $2 in
 	    unlock)
+		cs_echo "Reqeust: unlock system"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
@@ -804,6 +809,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    lock)
+		cs_echo "Reqeust: lock system"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
@@ -826,6 +832,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "boot" ]; then
 	case $2 in
 	    unlock)
+		cs_echo "Reqeust: unlock boot"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
@@ -839,6 +846,7 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    lock)
+		cs_echo "Reqeust: lock boot"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
@@ -2631,6 +2639,7 @@ if [ ! -z $1 ]; then
 	sudo cp -f /tmp/temp_recent_list /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /tmp/hotspot_active /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/openauto.ini /tmp/debuglogs/
+	sudo cp -f /home/pi/openauto.log /tmp/debuglogs/
 	sudo cp -f /home/pi/openauto_wifi_recent.ini /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.xinitrc /tmp/debuglogs/
 	cat /etc/crankshaft.build > /tmp/debuglogs/cs-version
