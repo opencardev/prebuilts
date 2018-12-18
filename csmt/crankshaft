@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.3
+version=1.7.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2574,7 +2574,7 @@ if [ ! -z $1 ]; then
 	echo $(/opt/vc/bin/vcgencmd measure_temp | cut -d= -f2)
     fi
 
-    #lightsensor
+    #plymouth splashscreen
     if [ $1 == "splash" ]; then
 	case $2 in
 	    animation)

@@ -412,6 +412,9 @@ if [ "${array[0]}" == "setparams" ]; then
     # restart gpiotrigger
     sudo systemctl restart gpiotrigger
 
+    # restore brightness
+    crankshaft brightness restore
+
     # Done
     echo "configure done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
