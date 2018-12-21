@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.6.6
+version=1.7.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -14,7 +14,7 @@ function cs_bootrw () {
     fi
 }
 function cs_bootro() {
-    if [ ! -f /tmp/dev_mode_enabled ] ; then
+    if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /boot
     fi
 }
@@ -24,20 +24,8 @@ function cs_systemrw() {
     fi
 }
 function cs_systemro() {
-    if [ ! -f /tmp/dev_mode_enabled ] ; then
+    if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /
-    fi
-}
-csmt_log() {
-    logger "CSMT: $1"
-    if [ ! -z $2 ];then
-	logger "CSMT: $2"
-    fi
-    if [ ! -z $3 ];then
-	logger "CSMT: $3"
-    fi
-    if [ ! -z $4 ];then
-	logger "CSMT: $4"
     fi
 }
 
@@ -429,15 +417,19 @@ function cs_echo() {
     PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
     if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
 	echo $1
+    else
+	logger "CSMT-LOGGER: --------------------------------------------------------------------"
+	logger "CSMT-LOGGER: $1"
+	logger "CSMT-LOGGER: --------------------------------------------------------------------"
     fi
 }
 
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|lightsensor|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|splash|lightsensor|debuglog|version${RESET}"
 	exit 0
     fi
 
@@ -485,6 +477,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "Custom Brightness Level Night Restored"
 			else
 			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    cs_echo "Start Restore Brightness Level Night - Current: ${LVL}"
 			    if [ ${BR_NIGHT} -lt ${LVL} ]; then
 			        while [ ${LVL} -gt ${BR_NIGHT} ];do
 				    LVL=$((${LVL}-1))
@@ -498,7 +491,7 @@ if [ ! -z $1 ]; then
 				    sleep 0.005
 				done
 			    fi
-			    cs_echo "Brightness Level Night Restored"
+			    cs_echo "Brightness Level Night Restored: ${LVL}"
 			fi
                     else
 			if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
@@ -512,6 +505,7 @@ if [ ! -z $1 ]; then
 			    cs_echo "Custom Brightness Level Day Restored"
 			else
 			    LVL=`cat ${BRIGHTNESS_FILE}`
+			    cs_echo "Start Restore Brightness Level Day - Current: ${LVL}"
 			    if [ ${BR_DAY} -lt ${LVL} ]; then
 			        while [ ${LVL} -gt ${BR_DAY} ];do
 				    LVL=$((${LVL}-1))
@@ -525,7 +519,7 @@ if [ ! -z $1 ]; then
 				    sleep 0.005
 				done
 			    fi
-			    cs_echo "Brightness Level Day Restored"
+			    cs_echo "Brightness Level Day Restored: ${LVL}"
 			fi
                     fi
 		else
@@ -715,26 +709,26 @@ if [ ! -z $1 ]; then
 	    system)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
+			cs_echo "Reqeust: unlock system"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemrw
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
+			cs_echo "Reqeust: lock system"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_systemro
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -750,26 +744,26 @@ if [ ! -z $1 ]; then
 	    boot)
 		if [ ! -z $3 ]; then
 		    if [ $3 == "unlock" ]; then
+			cs_echo "Reqeust: unlock boot"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootrw
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
 			    cs_echo "After : read-write"
 			fi
 		    elif [ $3 == "lock" ]; then
+			cs_echo "Reqeust: lock boot"
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "Before: read-only"
 			else
 			    cs_echo "Before: read-write"
 			fi
 			cs_bootro
-			cs_echo ""
 			if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 			    cs_echo "After : read-only"
 			else
@@ -801,13 +795,13 @@ if [ ! -z $1 ]; then
     if [ $1 == "system" ]; then
 	case $2 in
 	    unlock)
+		cs_echo "Reqeust: unlock system"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
 		    cs_echo "Before: read-write"
 		fi
 		cs_systemrw
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -815,13 +809,13 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    lock)
+		cs_echo "Reqeust: lock system"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
 		    cs_echo "Before: read-write"
 		fi
 		cs_systemro
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/root " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -838,13 +832,13 @@ if [ ! -z $1 ]; then
     if [ $1 == "boot" ]; then
 	case $2 in
 	    unlock)
+		cs_echo "Reqeust: unlock boot"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
 		    cs_echo "Before: read-write"
 		fi
 		cs_bootrw
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -852,13 +846,13 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    lock)
+		cs_echo "Reqeust: lock boot"
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "Before: read-only"
 		else
 		    cs_echo "Before: read-write"
 		fi
 		cs_bootro
-		cs_echo ""
 		if [ $(cat /proc/mounts | grep -P "\sro[\s,]" | grep "/dev/mmcblk0p1 " | awk '{print $1}') ]; then
 		    cs_echo "After : read-only"
 		else
@@ -1842,7 +1836,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
-		wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+		sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1884,11 +1878,12 @@ if [ ! -z $1 ]; then
 		    sudo udevadm control --reload-rules
 		    cs_echo ""
 		    cs_echo "OK: udev rules updated."
+		    sudo rm /tmp/udev_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		;;
 	    csmt)
-		wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
                 REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1914,6 +1909,7 @@ if [ ! -z $1 ]; then
 		    sudo rm /usr/local/bin/crankshaft.update
 		    cs_echo ""
 		    cs_echo "OK: crankshaft management tool updated."
+		    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		;;
@@ -1923,10 +1919,10 @@ if [ ! -z $1 ]; then
                 sudo killall autoapp >/dev/null 2>&1
                 if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
-		        wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		        sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
                     fi
                 else
-		    wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
                 fi
                 REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
@@ -1961,15 +1957,16 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		    cs_echo "OK: openauto updated."
 		    cs_echo ""
+		    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		# autoapp_helper
                 if [ ! -z $3 ]; then
                     if [ "$3" == "dev" ]; then
-		        wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
+		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
                     fi
                 else
-                    wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+                    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
                 fi
                 REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
@@ -2580,6 +2577,30 @@ if [ ! -z $1 ]; then
 	echo $(/opt/vc/bin/vcgencmd measure_temp | cut -d= -f2)
     fi
 
+    #plymouth splashscreen
+    if [ $1 == "splash" ]; then
+	case $2 in
+	    animation)
+		cs_systemrw
+		sudo plymouth-set-default-theme csnganimation
+		cs_systemro
+		;;
+	    classic)
+		cs_systemrw
+		sudo plymouth-set-default-theme crankshaft
+		cs_systemro
+		;;
+	    custom)
+		cs_systemrw
+		sudo plymouth-set-default-theme custom
+		cs_systemro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft splash animation|classic|custom${RESET}"
+		;;
+	esac
+    fi
+
     #lightsensor
     if [ $1 == "lightsensor" ]; then
 	case $2 in
@@ -2621,6 +2642,7 @@ if [ ! -z $1 ]; then
 	sudo cp -f /tmp/temp_recent_list /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /tmp/hotspot_active /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/openauto.ini /tmp/debuglogs/
+	sudo cp -f /home/pi/openauto.log /tmp/debuglogs/
 	sudo cp -f /home/pi/openauto_wifi_recent.ini /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.xinitrc /tmp/debuglogs/
 	cat /etc/crankshaft.build > /tmp/debuglogs/cs-version
@@ -2740,6 +2762,9 @@ if [ ! -z $1 ]; then
 	# Modules
 	sudo cp -f /etc/modules /tmp/debuglogs/ >/dev/null 2>&1
 
+	# i2c devices
+	sudo i2cdetect -y 1 > /tmp/debuglogs/i2c-devices.log
+
 	# Finish
 	sudo chmod 666 /tmp/debuglogs/*
 	sudo rm -rf /boot/debug.zip >/dev/null 2>&1
@@ -2753,8 +2778,12 @@ if [ ! -z $1 ]; then
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
     fi
-    cs_echo ""
-    cs_echo "Done."
+
+    if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
+	cs_echo ""
+	cs_echo "Done."
+    fi
+
 else
     echo ""
     echo "crankshaft known commands:"
@@ -2928,6 +2957,11 @@ else
     echo "lightsensor                   Brightness control and day/night controlled by lightsensor"
     echo "     |- enable                - Enable support for tsl2561 i2c light sensor"
     echo "     |- disable               - Disable support for tsl2561 i2c light sensor"
+    echo ""
+    echo "splash                        Set plymouth boot splash theme"
+    echo "     |- animation             - Enable animated plymouth boot splash"
+    echo "     |- classic               - Enable classic plymouth boot splash"
+    echo "     |- custom                - Enable custom plymouth boot splash"
     echo ""
     echo "update                        Handle Updates"
     echo "     |- udev                  - Check And Update udev Rules For Device Detection"

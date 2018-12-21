@@ -12,8 +12,7 @@ if [ ! -d aasdk ]; then
 else
     cd aasdk
     git reset --hard
-    git fetch --all
-    git checkout development
+    git clean -d -x -f
     git pull
     cd $HOME
 fi
@@ -27,6 +26,6 @@ mkdir -p $HOME/aasdk_build
 # Create inside build folder
 cd $HOME/aasdk_build
 cmake -DCMAKE_BUILD_TYPE=Release ../aasdk
-make
+make -j2
 
 cd $HOME

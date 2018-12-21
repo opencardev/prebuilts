@@ -11,7 +11,7 @@ sudo apt-get install -y -q --no-install-recommends libboost-all-dev libusb-1.0.0
 sudo apt-get remove --purge -y -q --no-install-recommends libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediawidgets5 qtmultimedia5-dev libqt5bluetooth5 libqt5bluetooth5-bin qtconnectivity5-dev
 
 # Apt packages to build qt5
-sudo apt-get -y -q install --no-install-recommends build-essential libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libsqlite3-dev libssl-dev libjpeg9-dev libglib2.0-dev  bluez libbluetooth-dev   libasound2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev  libxkbcommon-dev libwayland-dev  libasound2-dev build-essential libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev  libglib2.0-dev libraspberrypi-dev libxcb1-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev libts-dev pulseaudio libpulse-dev librtaudio5a librtaudio-dev libraspberrypi-bin libraspberrypi-dev bluez libbluetooth-dev libdouble-conversion-dev
+sudo apt-get -y -q install --no-install-recommends build-essential libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libsqlite3-dev libssl-dev libjpeg9-dev libglib2.0-dev  bluez libbluetooth-dev   libasound2-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev  libxkbcommon-dev libwayland-dev  libasound2-dev build-essential libfontconfig1-dev libdbus-1-dev libfreetype6-dev libicu-dev libinput-dev libxkbcommon-dev libsqlite3-dev  libglib2.0-dev libraspberrypi-dev libxcb1-dev libfontconfig1-dev libfreetype6-dev libx11-dev libxext-dev libxfixes-dev libxi-dev libxrender-dev libxcb1-dev libx11-xcb-dev libxcb-glx0-dev libts-dev pulseaudio libpulse-dev librtaudio5a librtaudio-dev libraspberrypi-bin libraspberrypi-dev bluez libbluetooth-dev libdouble-conversion-dev '^libxcb.*-dev' libxcb-xinerama0-dev
 
 # Apt packages to build ilclient
 sudo apt-get -y -q install --no-install-recommends rpi-update
@@ -23,7 +23,8 @@ sudo apt-get install -y -q --no-install-recommends pulseaudio librtaudio-dev lib
 sudo apt-get -y -q install --no-install-recommends pv unzip kpartx zerofree qemu-user-static binfmt-support
 
 # Apt packages to build pulseaudio
-sudo apt-get install -y -q --no-install-recommends build-deb pulseaudio
+sudo apt-get build-dep pulseaudio
+sudo apt-get install -y -q --no-install-recommends autopoint autoconf
 
 # Apt packages to build bluez
 sudo apt-get install -y -q --no-install-recommends libdbus-1-dev libglib2.0-dev libudev-dev libical-dev libreadline-dev
