@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.4
+version=1.7.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1878,6 +1878,7 @@ if [ ! -z $1 ]; then
 		    sudo udevadm control --reload-rules
 		    cs_echo ""
 		    cs_echo "OK: udev rules updated."
+		    sudo rm /tmp/udev_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		;;
@@ -1908,6 +1909,7 @@ if [ ! -z $1 ]; then
 		    sudo rm /usr/local/bin/crankshaft.update
 		    cs_echo ""
 		    cs_echo "OK: crankshaft management tool updated."
+		    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		;;
@@ -1955,6 +1957,7 @@ if [ ! -z $1 ]; then
 		    cs_echo ""
 		    cs_echo "OK: openauto updated."
 		    cs_echo ""
+		    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
 		# autoapp_helper
