@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.8
+version=1.7.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1887,138 +1887,164 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-                if [ ! -z $3 ]; then
-                    if [ "$3" == "dev" ]; then
+		if [ ! -z $3 ]; then
+		    if [ "$3" == "dev" ]; then
 			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
-                    fi
-                else
-		    sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
-                fi
-                REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: crankshaft management tool is up to date."
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
-		    # get source file
-                    if [ ! -z $3 ]; then
-                        if [ "$3" == "dev" ]; then
-			    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
-                        fi
-                    else
-			sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
-                    fi
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/crankshaft.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
-		    sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
-		    sudo chmod 777 /usr/local/bin/crankshaft
-		    sudo rm /usr/local/bin/crankshaft.update
-		    cs_echo ""
-		    cs_echo "OK: crankshaft management tool updated."
-		    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		fi
+		REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
+		cs_echo "New csmt file:     $REMOTE"
+		cs_echo "Current csmt file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: csmt - checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: crankshaft management tool is up to date."
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ]; then
+			    if [ "$3" == "dev" ]; then
+				cs_echo "DOWNLOAD: csmt dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
+			    fi
+			else
+			    cs_echo "DOWNLOAD: csmt"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/crankshaft.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
+			    sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
+			    sudo chmod 777 /usr/local/bin/crankshaft
+			    sudo rm /usr/local/bin/crankshaft.update
+			    cs_echo ""
+			    cs_echo "OK: crankshaft management tool updated."
+			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+			else
+			    cs_echo "ABORT: csmt download checksum fail."
+			fi
+			cs_systemro
+		    fi
 		fi
 		;;
 	    openauto)
 		# openauto
-                sudo systemctl stop openauto
-                sudo killall autoapp >/dev/null 2>&1
-                if [ ! -z $3 ]; then
-                    if [ "$3" == "dev" ]; then
-		        sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
-                    fi
-                else
-		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
-                fi
-                REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: openauto is up to date."
-		    cs_echo ""
+		restart=0
+		if [ ! -z $3 ]; then
+		    if [ "$3" == "dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
-		    # get source file
-                    if [ ! -z $3 ]; then
-                        if [ "$3" == "dev" ]; then
-		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
-                        fi
-                    else
-	                sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
-                    fi
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/autoapp.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
-		    sudo cp -f /usr/local/bin/autoapp.update /usr/local/bin/autoapp
-		    sudo chmod 777 /usr/local/bin/autoapp
-		    sudo rm /usr/local/bin/autoapp.update
-		    cs_echo ""
-		    cs_echo "OK: openauto updated."
-		    cs_echo ""
-		    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		fi
+		REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
+		cs_echo "New openauto file:     $REMOTE"
+		cs_echo "Current openauto file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: openauto checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: openauto is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ]; then
+			    if [ "$3" == "dev" ]; then
+				cs_echo "DOWNLOAD: openauto dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
+			    fi
+			else
+			    cs_echo "DOWNLOAD: openauto"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/autoapp.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
+			    sudo cp -f /usr/local/bin/autoapp.update /usr/local/bin/autoapp
+			    sudo chmod 777 /usr/local/bin/autoapp
+			    sudo rm /usr/local/bin/autoapp.update
+			    cs_echo ""
+			    cs_echo "OK: openauto updated."
+			    cs_echo ""
+			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+			    restart=1
+			else
+			    sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
+			    cs_echo "ABORT: openauto download checksum fail."
+			fi
+			cs_systemro
+		    fi
 		fi
 		# autoapp_helper
-                if [ ! -z $3 ]; then
-                    if [ "$3" == "dev" ]; then
+		if [ ! -z $3 ]; then
+		    if [ "$3" == "dev" ]; then
 		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
-                    fi
-                else
-                    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
-                fi
-                REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: autoapp_helper is up to date."
-		    cs_echo ""
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
-		    # get source file
-                    if [ ! -z $3 ]; then
-                        if [ "$3" == "dev" ]; then
-		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
-                        fi
-                    else
-		        sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
-                    fi
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/autoapp_helper.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
-		    sudo cp -f /usr/local/bin/autoapp_helper.update /usr/local/bin/autoapp_helper
-		    sudo chmod 777 /usr/local/bin/autoapp_helper
-		    sudo rm /usr/local/bin/autoapp_helper.update
-		    cs_echo ""
-		    cs_echo "OK: autoapp_helper updated."
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
 		fi
-                sudo systemctl start openauto
+		REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
+		cs_echo "New autoapp_helper file:     $REMOTE"
+		cs_echo "Current autoapp_helper file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: autoapp_helper checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: autoapp_helper is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ]; then
+			    if [ "$3" == "dev" ]; then
+				cs_echo "DOWNLOAD: autoapp_helper dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+			    fi
+			else
+			    cs_echo "DOWNLOAD: autoapp_helper"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/autoapp_helper.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
+			    sudo cp -f /usr/local/bin/autoapp_helper.update /usr/local/bin/autoapp_helper
+			    sudo chmod 777 /usr/local/bin/autoapp_helper
+			    sudo rm /usr/local/bin/autoapp_helper.update
+			    cs_echo ""
+			    cs_echo "OK: autoapp_helper updated."
+			    restart=1
+			else
+			    sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
+			    cs_echo "ABORT: autoapp_helper download checksum fail."
+			fi
+			cs_systemro
+		    fi
+		    cs_echo "Restarting openauto after update"
+		fi
+		if [ $restart -eq 1 ]; then
+		    sudo systemctl restart openauto
+		fi
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto${RESET}"
