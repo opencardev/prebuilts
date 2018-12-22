@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.6
+version=1.7.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1074,8 +1074,12 @@ if [ ! -z $1 ]; then
 				sudo sed -i 's/^RTC_DAY_START=.*/RTC_DAY_START='$3'/' /boot/crankshaft/crankshaft_env.sh
 				sudo sed -i 's/^RTC_NIGHT_START=.*/RTC_NIGHT_START='$4'/' /boot/crankshaft/crankshaft_env.sh
 				# Setup timers
-				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
-				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
+				# skip old style checking every minute
+				#sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
+				#sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
+				# use new style only checking on trigger time
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3':00:00/' /etc/systemd/system/daymode.timer
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$4':00:00/' /etc/systemd/system/nightmode.timer
 				sudo systemctl daemon-reload >/dev/null 2>&1
 				if [ -z $5 ]; then
 				    sudo systemctl stop daymode.timer >/dev/null 2>&1
