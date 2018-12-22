@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.7
+version=1.7.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1887,7 +1887,13 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-		sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+                if [ ! -z $3 ]; then
+                    if [ "$3" == "dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+                    fi
+                else
+		    sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+                fi
                 REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
                 cs_echo "New file:     $REMOTE"
@@ -1904,7 +1910,13 @@ if [ ! -z $1 ]; then
                     sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
                     sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
 		    # get source file
-		    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+                    if [ ! -z $3 ]; then
+                        if [ "$3" == "dev" ]; then
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
+                        fi
+                    else
+			sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+                    fi
 		    # check download
 		    LOCAL=`wc -c /usr/local/bin/crankshaft.update | awk '{print $1}'`
 		    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
