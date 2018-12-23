@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.8.0
+version=1.8.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -905,6 +905,12 @@ if [ ! -z $1 ]; then
 		cs_echo "---------------------------------------------------------------------------------------------------------------------"
 		cs_echo "${YELLOW}"
     		sudo systemctl list-timers --all --no-pager | grep shutdown
+		cs_echo "${RESET}"
+		cs_echo ""
+		cs_echo "${GREEN}${BOLD}Update check${RESET}"
+		cs_echo "---------------------------------------------------------------------------------------------------------------------"
+		cs_echo "${YELLOW}"
+    		sudo systemctl list-timers --all --no-pager | grep update
 		cs_echo "${RESET}"
 		;;
 	    disconnect)
@@ -1887,8 +1893,8 @@ if [ ! -z $1 ]; then
 		fi
 		;;
 	    csmt)
-		if [ ! -z $3 ]; then
-		    if [ "$3" == "dev" ]; then
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
 		    fi
 		else
@@ -1909,8 +1915,8 @@ if [ ! -z $1 ]; then
 			sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
 			sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
 			# get source file
-			if [ ! -z $3 ]; then
-			    if [ "$3" == "dev" ]; then
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: csmt dev"
 				sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
 			    fi
@@ -1938,8 +1944,8 @@ if [ ! -z $1 ]; then
 	    openauto)
 		# openauto
 		restart=0
-		if [ ! -z $3 ]; then
-		    if [ "$3" == "dev" ]; then
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
 		    fi
 		else
@@ -1961,8 +1967,8 @@ if [ ! -z $1 ]; then
 			sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
 			sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
 			# get source file
-			if [ ! -z $3 ]; then
-			    if [ "$3" == "dev" ]; then
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: openauto dev"
 				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
 			    fi
@@ -1991,8 +1997,8 @@ if [ ! -z $1 ]; then
 		    fi
 		fi
 		# autoapp_helper
-		if [ ! -z $3 ]; then
-		    if [ "$3" == "dev" ]; then
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
 		    fi
 		else
@@ -2014,8 +2020,8 @@ if [ ! -z $1 ]; then
 			sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
 			sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
 			# get source file
-			if [ ! -z $3 ]; then
-			    if [ "$3" == "dev" ]; then
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: autoapp_helper dev"
 				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
 			    fi
