@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.9
+version=1.8.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -427,9 +427,9 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "screenshot" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|splash|lightsensor|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|screenshot|update|splash|lightsensor|debuglog|version${RESET}"
 	exit 0
     fi
 
@@ -2668,6 +2668,22 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #screenshot
+    if [ $1 == "screenshot" ]; then
+	x11check=$(ps -ax | grep xorg | grep -v grep | tail -n1)
+	if [ "$x11check" != "" ]; then
+	    if [ "$2" == "jpg" ]; then
+		cs_echo "Taking screenshot... (/tmp/screenshot.jpg)"
+		sudo xwd -root -display :0 -silent | convert xwd:- jpg:- >/tmp/screenshot.jpg
+	    else
+		cs_echo "Taking screenshot... (/tmp/screenshot.png)"
+		sudo xwd -root -display :0 -silent | convert xwd:- png:- >/tmp/screenshot.png
+	    fi
+	else
+	    cs_echo "Openauto not running in X11 mode!"
+	fi
+    fi
+
     #debuglog
     if [ $1 == "debuglog" ]; then
         touch /tmp/debug_in_progress
@@ -2994,6 +3010,9 @@ else
     echo "        |- external           - Disable builtin bluetooth support to use external adapter"
     echo "        |- disable            - Disable builtin bluetooth support to use external adapter"
     echo ""
+    echo "screenshot                    Take a screenshot from openauto (only useable in x11 mode)"
+    echo "         |- jpg               - Take screenshot as jpg (by default png is used if not specified)"
+    echo ""
     echo "syslog                        Show os syslog"
     echo ""
     echo "lightsensor                   Brightness control and day/night controlled by lightsensor"
@@ -3018,3 +3037,4 @@ else
 fi
 
 exit 0
+
