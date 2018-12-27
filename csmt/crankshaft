@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.8.3
+version=1.8.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2052,6 +2052,35 @@ if [ ! -z $1 ]; then
 		    sudo systemctl restart openauto
 		fi
 		;;
+	    system)
+		if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
+		else
+		    wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+		fi
+		BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+		if [ "$BUILDID_LATEST" == "$(cat /etc/crankshaft.build)" ]; then
+		    cs_echo ""
+		    cs_echo "ABORT: system is up to date."
+		    cs_echo ""
+		else
+		    if [ -d /media/CSSTORAGE ]; then
+			cs_echo "Start downloading..."
+			touch /tmp/system_update_downloading > /dev/null 2>&1
+			wget --no-check-certificate -t 3 -T 60 -N -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+			if [ $? == 0 ]; then
+			    cs_echo "OK: Download finished."
+			    touch /tmp/system_update_ready > /dev/null 2>&1
+			else
+			    sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+			    cs_echo "ABORT: Download failed."
+			fi
+			sudo rm /tmp/system_update_downlading > /dev/null 2>&1
+		    else
+			cs_echo "ABORT: CSSTORAGE not available as download destination."
+		    fi
+		fi
+		;;
 	    check)
 		if [ "`ping -c 1 google.com`" ]; then
 		    cs_echo "Internet connection available"
@@ -2086,6 +2115,13 @@ if [ ! -z $1 ]; then
 		    LOCAL_OPENAUTO=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
 		    rm /tmp/autoapp.md5
 
+		    # Check latest image
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
+		    else
+			wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+		    fi
+
 		    # Notifications
 		    # udev
 		    if [ "$REMOTE_UDEV" != "$LOCAL_UDEV" ]; then
@@ -2111,8 +2147,19 @@ if [ ! -z $1 ]; then
 		    else
 			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
 		    fi
+
+		    # latest image
+		    BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ]; then
+			cs_echo "New system image available!"
+			sudo rm /tmp/system_update_available > /dev/null 2>&1
+			touch /tmp/system_update_available
+		    else
+			sudo rm /tmp/system_update_available > /dev/null 2>&1
+		    fi
+
 		    # no updates
-		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ];then
+		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$BUILDID_LATEST" == "$(cat /etc/crankshaft.build)" ]; then
 			cs_echo "No new updates"
 		    fi
 		else
