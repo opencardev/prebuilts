@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.8.5
+version=1.8.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -427,9 +427,9 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "screenshot" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "screenshot" ] && [ $1 != "splash" ] && [ $1 != "initramfs" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|screenshot|update|splash|lightsensor|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|screenshot|update|splash|lightsensor|initramfs|debuglog|version${RESET}"
 	exit 0
     fi
 
@@ -2953,6 +2953,64 @@ if [ ! -z $1 ]; then
         sudo rm -rf /tmp/debuglogs
     fi
 
+    #initramfs
+    if [ $1 == "initramfs" ]; then
+	case $2 in
+	    clean)
+		cs_bootrw
+		cs_echo "Cleanup initramfs"
+                # cleanup
+		sudo rm /boot/initrd.img > /dev/null 2>&1
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+                sudo sed -i 's/^# Initramfs params for flashsystem//' /boot/config.txt
+                sudo sed -i 's/^initramfs initrd.img followkernel//' /boot/config.txt
+                sudo sed -i 's/^ramfsfile=initrd.img//' /boot/config.txt
+                sudo sed -i 's/^ramfsaddr=-1//' /boot/config.txt
+                sudo sed -i 's/rootdelay=10//' /boot/cmdline.txt
+                sudo sed -i 's/initrd=-1//' /boot/cmdline.txt
+                sudo sed -i 's/splash //' /boot/cmdline.txt
+                sudo sed -i 's/vt.global_cursor_default=0 //' /boot/cmdline.txt
+                sudo sed -i 's/plymouth.ignore-serial-consoles //' /boot/cmdline.txt
+		sudo sed -i 's/ *$//' /boot/cmdline.txt
+                sudo sed -i 's/$/ vt.global_cursor_default=0/' /boot/cmdline.txt
+                sudo sed -i 's/$/ plymouth.ignore-serial-consoles/' /boot/cmdline.txt
+                sudo sed -i 's/$/ splash/' /boot/cmdline.txt
+                sudo sed -i '/./,/^$/!d' /boot/config.txt
+		cs_bootro
+		;;
+	    create)
+		cs_bootrw
+		cs_echo "Creating initramfs"
+                # cleanup
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+                sudo sed -i 's/^# Initramfs params for flashsystem//' /boot/config.txt
+                sudo sed -i 's/^initramfs initrd.img followkernel//' /boot/config.txt
+                sudo sed -i 's/^ramfsfile=initrd.img//' /boot/config.txt
+                sudo sed -i 's/^ramfsaddr=-1//' /boot/config.txt
+                sudo sed -i 's/rootdelay=10//' /boot/cmdline.txt
+                sudo sed -i 's/initrd=-1//' /boot/cmdline.txt
+                sudo sed -i 's/splash //' /boot/cmdline.txt
+                sudo sed -i 's/vt.global_cursor_default=0 //' /boot/cmdline.txt
+                sudo sed -i 's/plymouth.ignore-serial-consoles //' /boot/cmdline.txt
+                sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo rm /boot/initrd.img > /dev/null 2>&1
+                sudo mkinitramfs -o /boot/initrd.img > /dev/null 2>&1
+                # Set entries
+                sudo echo "" >> /boot/config.txt
+                sudo echo "# Initramfs params for flashsystem" >> /boot/config.txt
+                sudo echo "initramfs initrd.img followkernel" >> /boot/config.txt
+                sudo echo "ramfsfile=initrd.img" >> /boot/config.txt
+                sudo echo "ramfsaddr=-1" >> /boot/config.txt
+                sudo sed -i 's/$/ rootdelay=10/' /boot/cmdline.txt
+                sudo sed -i 's/$/ initrd=-1/' /boot/cmdline.txt
+		cs_bootro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft initramfs clean|create${RESET}"
+		;;
+	esac
+    fi
+
     #version
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
@@ -3152,6 +3210,10 @@ else
     echo "     |- check                 - Check for new versions"
     echo ""
     echo "debuglog                      Create debug log for support requests"
+    echo ""
+    echo "initramfs                     Handle initramfs"
+    echo "    |- clean                  - Remove initramfs entries"
+    echo "    |- create                 - Create initramfs and setup"
     echo ""
     echo "temp                          Show current system temp"
     echo ""
