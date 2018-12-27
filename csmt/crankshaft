@@ -2996,11 +2996,11 @@ if [ ! -z $1 ]; then
 		sudo rm /boot/initrd.img > /dev/null 2>&1
                 sudo mkinitramfs -o /boot/initrd.img > /dev/null 2>&1
                 # Set entries
-                sudo echo "" >> /boot/config.txt
-                sudo echo "# Initramfs params for flashsystem" >> /boot/config.txt
-                sudo echo "initramfs initrd.img followkernel" >> /boot/config.txt
-                sudo echo "ramfsfile=initrd.img" >> /boot/config.txt
-                sudo echo "ramfsaddr=-1" >> /boot/config.txt
+                sudo sh -c 'echo "" >> /boot/config.txt'
+                sudo sh -c 'echo "# Initramfs params for flashsystem" >> /boot/config.txt'
+                sudo sh -c 'echo "initramfs initrd.img followkernel" >> /boot/config.txt'
+                sudo sh -c 'echo "ramfsfile=initrd.img" >> /boot/config.txt'
+                sudo sh -c 'echo "ramfsaddr=-1" >> /boot/config.txt'
                 sudo sed -i 's/$/ rootdelay=10/' /boot/cmdline.txt
                 sudo sed -i 's/$/ initrd=-1/' /boot/cmdline.txt
 		cs_bootro
