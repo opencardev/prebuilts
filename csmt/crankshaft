@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.8.2
+version=1.8.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2052,8 +2052,76 @@ if [ ! -z $1 ]; then
 		    sudo systemctl restart openauto
 		fi
 		;;
+	    check)
+		if [ "`ping -c 1 google.com`" ]; then
+		    cs_echo "Internet connection available"
+		    cs_echo ""
+		    # Check udev rules
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/udev/51-android.rules.md5
+		    else
+			wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+		    fi
+		    REMOTE_UDEV=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
+		    LOCAL_UDEV=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
+		    rm /tmp/51-android.rules.md5
+
+		    # Check crankshaft amangement tool
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+		    else
+			wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		    fi
+		    REMOTE_CSMT=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
+		    LOCAL_CSMT=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
+		    rm /tmp/crankshaft.md5
+
+		    # Check openauto
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		    else
+			wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		    fi
+		    REMOTE_OPENAUTO=$(cat /tmp/autoapp.md5 | awk {'print $1'})
+		    LOCAL_OPENAUTO=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
+		    rm /tmp/autoapp.md5
+
+		    # Notifications
+		    # udev
+		    if [ "$REMOTE_UDEV" != "$LOCAL_UDEV" ]; then
+			cs_echo "New udev rules available!"
+			sudo rm /tmp/udev_update_available > /dev/null 2>&1
+			touch /tmp/udev_update_available
+		    else
+			sudo rm /tmp/udev_update_available > /dev/null 2>&1
+		    fi
+		    # csmt
+		    if [ "$REMOTE_CSMT" != "$LOCAL_CSMT" ]; then
+			cs_echo "New csmt available!"
+			sudo rm /tmp/csmt_update_available > /dev/null 2>&1
+			touch /tmp/csmt_update_available
+		    else
+			sudo rm /tmp/csmt_update_available > /dev/null 2>&1
+		    fi
+		    # openauto
+		    if [ "$REMOTE_OPENAUTO" != "$LOCAL_OPENAUTO" ]; then
+			cs_echo "New openauto available!"
+			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
+			touch /tmp/openauto_update_available
+		    else
+			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
+		    fi
+		    # no updates
+		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ];then
+			cs_echo "No new updates"
+		    fi
+		else
+		    cs_echo ""
+		    cs_echo "No internet connection available"
+		fi
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check${RESET}"
 		;;
 	esac
     fi
@@ -3034,6 +3102,7 @@ else
     echo "     |- udev                  - Check And Update udev Rules For Device Detection"
     echo "     |- csmt                  - Check And Update Crankshaft Management Tool"
     echo "     |- openauto              - Check And Update openauto/helper - Warning: only use if requested by support!"
+    echo "     |- check                 - Check for new versions"
     echo ""
     echo "debuglog                      Create debug log for support requests"
     echo ""
@@ -3043,4 +3112,3 @@ else
 fi
 
 exit 0
-
