@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.8.4
+version=1.8.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2075,7 +2075,7 @@ if [ ! -z $1 ]; then
 			    sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
 			    cs_echo "ABORT: Download failed."
 			fi
-			sudo rm /tmp/system_update_downlading > /dev/null 2>&1
+			sudo rm /tmp/system_update_downloading > /dev/null 2>&1
 		    else
 			cs_echo "ABORT: CSSTORAGE not available as download destination."
 		    fi
