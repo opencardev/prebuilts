@@ -536,9 +536,11 @@ if [ "$1" == "getparams" ]; then
     # plymouth theme
     plymouththeme=$(cat /etc/plymouth/plymouthd.conf | grep '^Theme=' | cut -d= -f2) > /dev/null 2>&1
 
+    CURRENT_WIFI_SSID="$(iwgetid | cut -d: -f2 | tr -d '"')"
+
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#${RTC_DAYNIGHT}#$plymouththeme#$WIFI_COUNTRY#" > /tmp/return_value
+    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${CURRENT_WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#${RTC_DAYNIGHT}#$plymouththeme#$WIFI_COUNTRY#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
