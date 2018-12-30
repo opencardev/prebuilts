@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.1
+version=1.9.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2067,7 +2067,7 @@ if [ ! -z $1 ]; then
 		BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
 		BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
 		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
-		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ]; then
+		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
 			if [ -d /media/CSSTORAGE ]; then
 			    cs_echo "Start downloading..."
 			    touch /tmp/system_update_downloading > /dev/null 2>&1
@@ -2171,7 +2171,7 @@ if [ ! -z $1 ]; then
 		    BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
 		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
 		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
-			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ]; then
+			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
 			    cs_echo "New system image available!"
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
 			    touch /tmp/system_update_available
