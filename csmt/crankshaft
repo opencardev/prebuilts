@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.3
+version=1.9.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2066,8 +2066,8 @@ if [ ! -z $1 ]; then
 		BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
 		BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
 		BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
-		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
+		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
 			if [ -d /media/CSSTORAGE ]; then
 			    cs_echo "Start downloading..."
 			    touch /tmp/system_update_downloading > /dev/null 2>&1
@@ -2075,8 +2075,12 @@ if [ ! -z $1 ]; then
 			    if [ $? == 0 ]; then
 				cs_echo "OK: Download finished."
 				touch /tmp/system_update_ready > /dev/null 2>&1
+				if [ "$3" == "force" ]; then
+				    touch /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				fi
 			    else
 				sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+				sudo rm /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
 				cs_echo "ABORT: Download failed."
 			    fi
 			    sudo rm /tmp/system_update_downloading > /dev/null 2>&1
