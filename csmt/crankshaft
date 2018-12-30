@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.4
+version=1.9.6
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1846,6 +1846,7 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
+		touch udev_updating
 		sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
 		sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
@@ -1854,6 +1855,7 @@ if [ ! -z $1 ]; then
                 cs_echo "Current file: $LOCAL"
                 if [ -z $REMOTE ] || [ -z $LOCAL ]; then
                     cs_echo "ABORT: checksum fail."
+		    sudo rm /tmp/udev_updating > /dev/null 2>&1
                     exit 1
                 fi
 		if [ "$REMOTE" == "$LOCAL" ]; then
@@ -1892,8 +1894,10 @@ if [ ! -z $1 ]; then
 		    sudo rm /tmp/udev_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
+		sudo rm /tmp/udev_updating > /dev/null 2>&1
 		;;
 	    csmt)
+		touch /tmp/csmt_updating
 		sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
 		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
@@ -1942,8 +1946,10 @@ if [ ! -z $1 ]; then
 			cs_systemro
 		    fi
 		fi
+		sudo rm /tmp/csmt_updating > /dev/null 2>&1
 		;;
 	    openauto)
+		touch /tmp/openauto_updating
 		# openauto
 		restart=0
 		sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
@@ -2050,11 +2056,13 @@ if [ ! -z $1 ]; then
 			fi
 			cs_systemro
 		    fi
-		    cs_echo "Restarting openauto after update"
 		fi
 		if [ $restart -eq 1 ]; then
+		    cs_echo "Restarting openauto after update"
+		    touch /tmp/openauto_restart_updated > /dev/null 2>&1
 		    sudo systemctl restart openauto
 		fi
+		sudo rm /tmp/openauto_updating > /dev/null 2>&1
 		;;
 	    system)
 		sudo rm /tmp/latestimage > /dev/null 2>&1
