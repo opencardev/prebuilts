@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.2
+version=1.9.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1897,10 +1897,10 @@ if [ ! -z $1 ]; then
 		sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
 		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
 		    fi
 		else
-		    wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		    sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
 		fi
 		REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
@@ -1920,11 +1920,11 @@ if [ ! -z $1 ]; then
 			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: csmt dev"
-				wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
+				sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
 			    fi
 			else
 			    cs_echo "DOWNLOAD: csmt"
-			    wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
 			fi
 			# check download
 			LOCAL=$(md5sum /usr/local/bin/crankshaft.update | awk {'print $1'})
@@ -1949,10 +1949,10 @@ if [ ! -z $1 ]; then
 		sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
 		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
 		    fi
 		else
-		    wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
 		fi
 		REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
@@ -1973,11 +1973,11 @@ if [ ! -z $1 ]; then
 			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: openauto dev"
-				wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
 			    fi
 			else
 			    cs_echo "DOWNLOAD: openauto"
-			    wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
 			fi
 			# check download
 			LOCAL=$(md5sum /usr/local/bin/autoapp.update | awk {'print $1'})
@@ -2003,10 +2003,10 @@ if [ ! -z $1 ]; then
 		sudo rm /tmp/autoapp_helper.md5 > /dev/null 2>&1
 		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-		        wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
+		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
 		    fi
 		else
-		    wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
 		fi
 		REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
@@ -2027,11 +2027,11 @@ if [ ! -z $1 ]; then
 			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: autoapp_helper dev"
-				wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
 			    fi
 			else
 			    cs_echo "DOWNLOAD: autoapp_helper"
-			    wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
 			fi
 			# check download
 			LOCAL=$(md5sum /usr/local/bin/autoapp_helper.update | awk {'print $1'})
@@ -2059,19 +2059,19 @@ if [ ! -z $1 ]; then
 	    system)
 		sudo rm /tmp/latestimage > /dev/null 2>&1
 		if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-		    wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
+		    sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
 		else
-		    wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+		    sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
 		fi
 		BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
 		BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
 		BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
-		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
+		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
 			if [ -d /media/CSSTORAGE ]; then
 			    cs_echo "Start downloading..."
 			    touch /tmp/system_update_downloading > /dev/null 2>&1
-			    wget --no-check-certificate -t 3 -T 60 -N -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+			    sudo wget --no-check-certificate -t 3 -T 60 -N -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
 			    if [ $? == 0 ]; then
 				cs_echo "OK: Download finished."
 				touch /tmp/system_update_ready > /dev/null 2>&1
@@ -2101,9 +2101,9 @@ if [ ! -z $1 ]; then
 		    # Check udev rules
 		    sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/udev/51-android.rules.md5
+			sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/udev/51-android.rules.md5
 		    else
-			wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+			sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
 		    fi
 		    REMOTE_UDEV=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		    LOCAL_UDEV=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
@@ -2112,9 +2112,9 @@ if [ ! -z $1 ]; then
 		    # Check crankshaft amangement tool
 		    sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
 		    else
-			wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
 		    fi
 		    REMOTE_CSMT=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
 		    LOCAL_CSMT=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
@@ -2123,9 +2123,9 @@ if [ ! -z $1 ]; then
 		    # Check openauto
 		    sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
 		    else
-			wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
 		    fi
 		    REMOTE_OPENAUTO=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		    LOCAL_OPENAUTO=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
@@ -2134,9 +2134,9 @@ if [ ! -z $1 ]; then
 		    # Check latest image
 		    sudo rm /tmp/latestimage > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
+			sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/latestimage/latest
 		    else
-			wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+			sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
 		    fi
 
 		    # Notifications
@@ -2170,11 +2170,11 @@ if [ ! -z $1 ]; then
 		    BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
 		    BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
 		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
-			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -ge ${BUILDDATE_CURRENT} ]; then
+		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
 			    cs_echo "New system image available!"
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
-			    touch /tmp/system_update_available
+			    sudo touch /tmp/system_update_available
 			    # Skip other updates cause newer system available including it
 			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
 			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
