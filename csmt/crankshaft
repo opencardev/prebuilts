@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.7
+version=1.9.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -27,6 +27,19 @@ function cs_systemro() {
     if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /
     fi
+}
+
+function start_trigger() {
+    echo "#!/bin/bash" > /tmp/download_trigger
+    echo "" >> /tmp/download_trigger
+    echo "while [ ! -f /tmp/system_update_ready ]; do" >> /tmp/download_trigger
+    echo "    touch /tmp/tic" >> /tmp/download_trigger
+    echo "    sleep 1" >> /tmp/download_trigger
+    echo "    rm /tmp/tic" >> /tmp/download_trigger
+    echo "    sleep 1" >> /tmp/download_trigger
+    echo "done" >> /tmp/download_trigger
+    sudo chmod 777 /tmp/download_trigger
+    /tmp/download_trigger &
 }
 
 # Audio functions
@@ -2080,7 +2093,8 @@ if [ ! -z $1 ]; then
 			if [ -d /media/CSSTORAGE ]; then
 			    cs_echo "Start downloading..."
 			    touch /tmp/system_update_downloading > /dev/null 2>&1
-			    sudo wget --no-check-certificate -t 3 -T 60 -N -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+			    start_trigger
+			    sudo wget --no-check-certificate -t 3 -T 60 -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
 			    if [ $? == 0 ]; then
 				cs_echo "OK: Download finished."
 				touch /tmp/system_update_ready > /dev/null 2>&1
@@ -2093,6 +2107,8 @@ if [ ! -z $1 ]; then
 				cs_echo "ABORT: Download failed."
 			    fi
 			    sudo rm /tmp/system_update_downloading > /dev/null 2>&1
+			    sudo killall download_trigger > /dev/null 2>&1
+			    sudo rm /tmp/download_trigger > /dev/null 2>&1
 			else
 			    cs_echo "ABORT: CSSTORAGE not available as download destination."
 			fi
