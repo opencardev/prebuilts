@@ -752,7 +752,9 @@ if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
 fi
 
 if [ "$1" == "usbreset" ] && [ -f /tmp/android_device ]; then
-
+    CHECKBUS=$(lsusb | grep 18d1 | awk {'print $2'} | cut -d: -f1)
+    CHECKDEVICE=$(lsusb | grep 18d1 | awk {'print $4'} | cut -d: -f1)
+    sudo usbreset /dev/bus/$CHECKBUS/$CHECKDEVICE > /dev/null 2>&1
     sudo usbreset $(cat /tmp/android_device | head -n1) > /dev/null 2>&1
 fi
 
