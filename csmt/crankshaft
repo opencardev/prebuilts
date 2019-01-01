@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.8
+version=1.9.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1404,18 +1404,23 @@ if [ ! -z $1 ]; then
 		if [ -f /tmp/custombrightness ]; then
 		    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 		fi
-		rm -f /tmp/blankscreen
+		rm -f /tmp/blankscreen >/dev/null 2>&1
+		rm -f /tmp/screensaver >/dev/null 2>&1
 		;;
 	    off)
 		if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
-		    sudo vcgencmd display_power 0 >/dev/null 2>&1
-		    if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
-			sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+		    if [ ${SCREEN_POWEROFF_OVERRIDE} -eq 1 ]; then
+			touch /tmp/screensaver
+		    else
+			sudo vcgencmd display_power 0 >/dev/null 2>&1
+			if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
+			    sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+			fi
+			if [ -f /tmp/custombrightness ]; then
+			    ${CUSTOM_BRIGHTNESS_COMMAND} 0
+			fi
+			touch /tmp/blankscreen
 		    fi
-		    if [ -f /tmp/custombrightness ]; then
-			${CUSTOM_BRIGHTNESS_COMMAND} 0
-		    fi
-		    touch /tmp/blankscreen
 		fi
 		;;
 	    toggle)
