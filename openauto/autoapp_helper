@@ -726,14 +726,14 @@ if [ "${array[0]}" == "settime" ]; then
 fi
 
 if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
-    sudo rm -f /tmp/temp_recent_list
     num=0
-    echo "[Recent]" > /tmp/openauto_wifi_recent.ini
-    echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini
+    sudo sh -c 'echo "[Recent]" > /tmp/openauto_wifi_recent.ini'
+    sudo sh -c 'echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini'
     cat /tmp/dnsmasq.leases | awk {'print $3'} | while read -r wificlient; do
-        echo "Entry_$num=$wificlient" >> /tmp/openauto_wifi_recent.ini
+        sudo sh -c 'echo "Entry_$num='$wificlient'" >> /tmp/openauto_wifi_recent.ini'
         if [ "$wificlient" != "" ]; then
-            echo "$wificlient" >> /tmp/temp_recent_list
+            log_echo "IP added to recent list: $wificlient"
+            sudo sh -c 'echo "'$wificlient'" >> /tmp/temp_recent_list'
         fi
         num=$((num+1))
     done
