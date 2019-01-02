@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.0.1
+version=2.0.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -440,9 +440,9 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "screenshot" ] && [ $1 != "splash" ] && [ $1 != "mode" ] && [ $1 != "initramfs" ] && [ $1 != "oalog" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "screenshot" ] && [ $1 != "splash" ] && [ $1 != "mode" ] && [ $1 != "initramfs" ] && [ $1 != "oalog" ] && [ $1 != "debuglog" ] && [ $1 != "i2ccheck" ] && [ $1 != "version" ]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|oalog|screenshot|update|splash|lightsensor|initramfs|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|version${RESET}"
 	exit 0
     fi
 
@@ -3116,6 +3116,54 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #i2c device check
+    if [ $1 == "i2ccheck" ]; then
+        device=$2
+        dline=$(echo $device | cut -c1)
+        drow=$(echo $device | cut -c2)
+        # replace hex char with correct array field
+        if [ "$drow" == "a" ]; then
+            drow=10
+        fi
+        if [ "$drow" == "b" ]; then
+            drow=11
+        fi
+        if [ "$drow" == "c" ]; then
+            drow=12
+        fi
+        if [ "$drow" == "d" ]; then
+            drow=13
+        fi
+        if [ "$drow" == "e" ]; then
+            drow=14
+        fi
+        if [ "$drow" == "f" ]; then
+            drow=15
+        fi
+        counter=0
+        i2cdetect -y 1 | tail -n8 | while read line; do
+            line=$(echo $line | cut -d: -f2)
+            # extend line 0 to fill array correct
+            if [ "$counter" == "0" ]; then
+                line="-- -- -- $line"
+            fi
+            IFS=' ' read -r -a array <<< "$line"
+            if [ "$dline" == "$counter" ]; then
+                if [ "${array[$drow]}" == "$device" ]; then
+                    echo "Device 0x$device found."
+                    exit 0
+                elif [ "${array[$drow]}" == "UU" ]; then
+                    echo "Device 0x$device found and in use by another process."
+                    exit 0
+                else
+                    echo "No device found."
+                    exit 1
+                fi
+            fi
+            counter=$((counter+1))
+        done
+    fi
+
     #version
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
@@ -3330,8 +3378,10 @@ else
     echo ""
     echo "temp                          Show current system temp"
     echo ""
+    echo "i2ccheck xx                   Check if i2c device is present"
+    echo "                              xx = address (0x68 = 68 for xx)"
+    echo ""
     echo "version                       Show Vesion Of CSMT"
 fi
 
 exit 0
-
