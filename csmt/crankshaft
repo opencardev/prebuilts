@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.9.9
+version=2.0.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2051,7 +2051,7 @@ if [ ! -z $1 ]; then
 			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 				cs_echo "DOWNLOAD: autoapp_helper dev"
-				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper
 			    fi
 			else
 			    cs_echo "DOWNLOAD: autoapp_helper"
