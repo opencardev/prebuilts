@@ -733,6 +733,7 @@ if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
     num=0
     sudo sh -c 'echo "[Recent]" > /tmp/openauto_wifi_recent.ini'
     sudo sh -c 'echo "EntiresCount=0" >> /tmp/openauto_wifi_recent.ini'
+    sudo sh -c 'echo "" > /tmp/temp_recent_list'
     cat /tmp/dnsmasq.leases | awk {'print $3'} | while read -r wificlient; do
         sudo sh -c 'echo "Entry_$num='$wificlient'" >> /tmp/openauto_wifi_recent.ini'
         if [ "$wificlient" != "" ]; then
