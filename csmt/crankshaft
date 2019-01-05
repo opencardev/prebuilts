@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=1.7.5
+version=2.0.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -27,6 +27,19 @@ function cs_systemro() {
     if [ ! -f /tmp/dev_mode_enabled ] && [ ! -f /tmp/keeprw ] ; then
 	sudo mount -o remount,ro /
     fi
+}
+
+function start_trigger() {
+    echo "#!/bin/bash" > /tmp/download_trigger
+    echo "" >> /tmp/download_trigger
+    echo "while [ ! -f /tmp/system_update_ready ]; do" >> /tmp/download_trigger
+    echo "    touch /tmp/tic" >> /tmp/download_trigger
+    echo "    sleep 1" >> /tmp/download_trigger
+    echo "    rm /tmp/tic" >> /tmp/download_trigger
+    echo "    sleep 1" >> /tmp/download_trigger
+    echo "done" >> /tmp/download_trigger
+    sudo chmod 777 /tmp/download_trigger
+    /tmp/download_trigger &
 }
 
 # Audio functions
@@ -427,9 +440,10 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    if [ $1 != "display" ] && [ $1 != "brightness" ] && [ $1 != "filesystem" ] && [ $1 != "system" ] && [ $1 != "boot" ] && [ $1 != "timers" ] && [ $1 != "settings" ] && [ $1 != "services" ] && [ $1 != "update" ] && [ $1 != "audio" ] && [ $1 != "rtc" ] && [ $1 != "state" ] && [ $1 != "reset" ] && [ $1 != "rpicam" ] && [ $1 != "resize" ] && [ $1 != "usb" ] && [ $1 != "gpio" ] && [ $1 != "hotspot" ] && [ $1 != "syslog" ] && [ $1 != "bluetooth" ] && [ $1 != "buttons" ] && [ $1 != "sdcard" ] && [ $1 != "temp" ] && [ $1 != "lightsensor" ] && [ $1 != "splash" ] && [ $1 != "debuglog" ] && [ $1 != "version" ]; then
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'version')
+    if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|timers|audio|rtc|state|settings|services|rpicam|reset|usb|resize|gpio|hotspot|syslog|update|splash|lightsensor|debuglog|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|version${RESET}"
 	exit 0
     fi
 
@@ -828,6 +842,42 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    # mode
+    if [ $1 == "mode" ]; then
+	case $2 in
+	    default)
+		cs_echo "System mode changed: default"
+		cs_bootrw
+		sudo sed -i 's/^DEV_MODE=.*/DEV_MODE=0/' /boot/crankshaft/crankshaft_env.sh
+		sudo sed -i 's/^DEBUG_MODE=.*/DEBUG_MODE=0/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		;;
+	    dev)
+		cs_echo "System mode changed: dev"
+		cs_bootrw
+		sudo sed -i 's/^DEV_MODE=.*/DEV_MODE=1/' /boot/crankshaft/crankshaft_env.sh
+		sudo sed -i 's/^DEV_MODE_APP=.*/DEV_MODE_APP=0/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		;;
+	    devapp)
+		cs_echo "System mode changed: devapp"
+		cs_bootrw
+		sudo sed -i 's/^DEV_MODE=.*/DEV_MODE=1/' /boot/crankshaft/crankshaft_env.sh
+		sudo sed -i 's/^DEV_MODE_APP=.*/DEV_MODE_APP=1/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		;;
+	    debug)
+		cs_echo "System mode changed: debug"
+		cs_bootrw
+		sudo sed -i 's/^DEBUG_MODE=.*/DEBUG_MODE=1/' /boot/crankshaft/crankshaft_env.sh
+		cs_bootro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft mode default|dev|debug${RESET}"
+		;;
+	esac
+    fi
+
     # boot
     if [ $1 == "boot" ]; then
 	case $2 in
@@ -905,6 +955,12 @@ if [ ! -z $1 ]; then
 		cs_echo "---------------------------------------------------------------------------------------------------------------------"
 		cs_echo "${YELLOW}"
     		sudo systemctl list-timers --all --no-pager | grep shutdown
+		cs_echo "${RESET}"
+		cs_echo ""
+		cs_echo "${GREEN}${BOLD}Update check${RESET}"
+		cs_echo "---------------------------------------------------------------------------------------------------------------------"
+		cs_echo "${YELLOW}"
+    		sudo systemctl list-timers --all --no-pager | grep update
 		cs_echo "${RESET}"
 		;;
 	    disconnect)
@@ -1074,8 +1130,12 @@ if [ ! -z $1 ]; then
 				sudo sed -i 's/^RTC_DAY_START=.*/RTC_DAY_START='$3'/' /boot/crankshaft/crankshaft_env.sh
 				sudo sed -i 's/^RTC_NIGHT_START=.*/RTC_NIGHT_START='$4'/' /boot/crankshaft/crankshaft_env.sh
 				# Setup timers
-				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
-				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
+				# skip old style checking every minute
+				#sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3'..'$night':*:00/' /etc/systemd/system/daymode.timer
+				#sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$hours':*:00/' /etc/systemd/system/nightmode.timer
+				# use new style only checking on trigger time
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$3':00:00/' /etc/systemd/system/daymode.timer
+				sudo sed -i 's/.*OnCalendar=.*/ OnCalendar=*-*-* '$4':00:00/' /etc/systemd/system/nightmode.timer
 				sudo systemctl daemon-reload >/dev/null 2>&1
 				if [ -z $5 ]; then
 				    sudo systemctl stop daymode.timer >/dev/null 2>&1
@@ -1381,18 +1441,23 @@ if [ ! -z $1 ]; then
 		if [ -f /tmp/custombrightness ]; then
 		    ${CUSTOM_BRIGHTNESS_COMMAND} $(cat /tmp/custombrightness)
 		fi
-		rm -f /tmp/blankscreen
+		rm -f /tmp/blankscreen >/dev/null 2>&1
+		rm -f /tmp/screensaver >/dev/null 2>&1
 		;;
 	    off)
 		if [ ! -f /tmp/btdevice ] && [ ! -f /tmp/media_playing ]; then
-		    sudo vcgencmd display_power 0 >/dev/null 2>&1
-		    if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
-			sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+		    if [ ${SCREEN_POWEROFF_OVERRIDE} -eq 1 ]; then
+			touch /tmp/screensaver
+		    else
+			sudo vcgencmd display_power 0 >/dev/null 2>&1
+			if [ -f /sys/class/backlight/rpi_backlight/bl_power ]; then
+			    sudo sh -c 'echo 1 > /sys/class/backlight/rpi_backlight/bl_power'
+			fi
+			if [ -f /tmp/custombrightness ]; then
+			    ${CUSTOM_BRIGHTNESS_COMMAND} 0
+			fi
+			touch /tmp/blankscreen
 		    fi
-		    if [ -f /tmp/custombrightness ]; then
-			${CUSTOM_BRIGHTNESS_COMMAND} 0
-		    fi
-		    touch /tmp/blankscreen
 		fi
 		;;
 	    toggle)
@@ -1836,6 +1901,8 @@ if [ ! -z $1 ]; then
     if [ $1 == "update" ]; then
 	case $2 in
 	    udev)
+		touch udev_updating
+		sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
 		sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
                 REMOTE=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
 		LOCAL=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
@@ -1843,6 +1910,7 @@ if [ ! -z $1 ]; then
                 cs_echo "Current file: $LOCAL"
                 if [ -z $REMOTE ] || [ -z $LOCAL ]; then
                     cs_echo "ABORT: checksum fail."
+		    sudo rm /tmp/udev_updating > /dev/null 2>&1
                     exit 1
                 fi
 		if [ "$REMOTE" == "$LOCAL" ]; then
@@ -1881,131 +1949,327 @@ if [ ! -z $1 ]; then
 		    sudo rm /tmp/udev_update_available >/dev/null 2>&1
                     cs_systemro
 		fi
+		sudo rm /tmp/udev_updating > /dev/null 2>&1
 		;;
 	    csmt)
-		sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
-                REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: crankshaft management tool is up to date."
+		touch /tmp/csmt_updating
+		sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
-		    # get source file
-		    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/crankshaft.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
-		    sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
-		    sudo chmod 777 /usr/local/bin/crankshaft
-		    sudo rm /usr/local/bin/crankshaft.update
-		    cs_echo ""
-		    cs_echo "OK: crankshaft management tool updated."
-		    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
 		fi
+		REMOTE=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
+		cs_echo "New csmt file:     $REMOTE"
+		cs_echo "Current csmt file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: csmt - checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: crankshaft management tool is up to date."
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/crankshaft.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/crankshaft.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+				cs_echo "DOWNLOAD: csmt dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft
+			    fi
+			else
+			    cs_echo "DOWNLOAD: csmt"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/crankshaft.update https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/crankshaft.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    sudo mv -f /usr/local/bin/crankshaft /usr/local/bin/crankshaft.old
+			    sudo cp -f /usr/local/bin/crankshaft.update /usr/local/bin/crankshaft
+			    sudo chmod 777 /usr/local/bin/crankshaft
+			    sudo rm /usr/local/bin/crankshaft.update
+			    cs_echo ""
+			    cs_echo "OK: crankshaft management tool updated."
+			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+			else
+			    cs_echo "ABORT: csmt download checksum fail."
+			fi
+			cs_systemro
+		    fi
+		fi
+		sudo rm /tmp/csmt_updating > /dev/null 2>&1
 		;;
 	    openauto)
+		touch /tmp/openauto_updating
 		# openauto
-                sudo systemctl stop openauto
-                sudo killall autoapp >/dev/null 2>&1
-                if [ ! -z $3 ]; then
-                    if [ "$3" == "dev" ]; then
-		        sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
-                    fi
-                else
-		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
-                fi
-                REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: openauto is up to date."
-		    cs_echo ""
+		restart=0
+		sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
-		    # get source file
-                    if [ ! -z $3 ]; then
-                        if [ "$3" == "dev" ]; then
-		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
-                        fi
-                    else
-	                sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
-                    fi
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/autoapp.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
-		    sudo cp -f /usr/local/bin/autoapp.update /usr/local/bin/autoapp
-		    sudo chmod 777 /usr/local/bin/autoapp
-		    sudo rm /usr/local/bin/autoapp.update
-		    cs_echo ""
-		    cs_echo "OK: openauto updated."
-		    cs_echo ""
-		    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		fi
+		REMOTE=$(cat /tmp/autoapp.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
+		cs_echo "New openauto file:     $REMOTE"
+		cs_echo "Current openauto file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: openauto checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: openauto is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/autoapp.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+				cs_echo "DOWNLOAD: openauto dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp
+			    fi
+			else
+			    cs_echo "DOWNLOAD: openauto"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/autoapp.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/bin/autoapp /usr/local/bin/autoapp.old
+			    sudo cp -f /usr/local/bin/autoapp.update /usr/local/bin/autoapp
+			    sudo chmod 777 /usr/local/bin/autoapp
+			    sudo rm /usr/local/bin/autoapp.update
+			    cs_echo ""
+			    cs_echo "OK: openauto updated."
+			    cs_echo ""
+			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+			    restart=1
+			else
+			    sudo rm /usr/local/bin/autoapp.update >/dev/null 2>&1
+			    cs_echo "ABORT: openauto download checksum fail."
+			fi
+			cs_systemro
+		    fi
 		fi
 		# autoapp_helper
-                if [ ! -z $3 ]; then
-                    if [ "$3" == "dev" ]; then
+		sudo rm /tmp/autoapp_helper.md5 > /dev/null 2>&1
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 		        sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper.md5
-                    fi
-                else
-                    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
-                fi
-                REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
-		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
-                cs_echo "New file:     $REMOTE"
-                cs_echo "Current file: $LOCAL"
-                if [ -z $REMOTE ] || [ -z $LOCAL ]; then
-                    cs_echo "ABORT: checksum fail."
-                    exit 1
-                fi
-		if [ "$REMOTE" == "$LOCAL" ]; then
-		    cs_echo ""
-		    cs_echo "ABORT: autoapp_helper is up to date."
-		    cs_echo ""
+		    fi
 		else
-                    cs_systemrw
-                    sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
-                    sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
-		    # get source file
-                    if [ ! -z $3 ]; then
-                        if [ "$3" == "dev" ]; then
-		            sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
-                        fi
-                    else
-		        sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
-                    fi
-		    # check download
-		    LOCAL=`wc -c /usr/local/bin/autoapp_helper.update | awk '{print $1}'`
-		    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
-		    sudo cp -f /usr/local/bin/autoapp_helper.update /usr/local/bin/autoapp_helper
-		    sudo chmod 777 /usr/local/bin/autoapp_helper
-		    sudo rm /usr/local/bin/autoapp_helper.update
-		    cs_echo ""
-		    cs_echo "OK: autoapp_helper updated."
-                    cs_systemro
+		    sudo wget -q --no-check-certificate -O /tmp/autoapp_helper.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper.md5
 		fi
-                sudo systemctl start openauto
+		REMOTE=$(cat /tmp/autoapp_helper.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/bin/autoapp_helper | awk {'print $1'})
+		cs_echo "New autoapp_helper file:     $REMOTE"
+		cs_echo "Current autoapp_helper file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: autoapp_helper checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: autoapp_helper is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
+			sudo rm /usr/local/bin/autoapp_helper.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+				cs_echo "DOWNLOAD: autoapp_helper dev"
+				sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp_helper
+			    fi
+			else
+			    cs_echo "DOWNLOAD: autoapp_helper"
+			    sudo wget -q --no-check-certificate -O /usr/local/bin/autoapp_helper.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp_helper
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/bin/autoapp_helper.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/bin/autoapp_helper /usr/local/bin/autoapp_helper.old
+			    sudo cp -f /usr/local/bin/autoapp_helper.update /usr/local/bin/autoapp_helper
+			    sudo chmod 777 /usr/local/bin/autoapp_helper
+			    sudo rm /usr/local/bin/autoapp_helper.update
+			    cs_echo ""
+			    cs_echo "OK: autoapp_helper updated."
+			    restart=1
+			else
+			    sudo rm /usr/local/bin/autoapp_helper.update >/dev/null 2>&1
+			    cs_echo "ABORT: autoapp_helper download checksum fail."
+			fi
+			cs_systemro
+		    fi
+		fi
+		if [ $restart -eq 1 ]; then
+		    cs_echo "Restarting openauto after update"
+		    touch /tmp/openauto_restart_updated > /dev/null 2>&1
+		    sudo systemctl restart openauto
+		fi
+		sudo rm /tmp/openauto_updating > /dev/null 2>&1
+		;;
+	    system)
+		sudo rm /tmp/latestimage > /dev/null 2>&1
+		if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    DEV_LATEST_FILE=`curl 'ftp://cloud.hawknetwork.de/FTP/' 2>/dev/null | grep zip | tail -1 | rev | cut -d" " -f1 | rev`
+		    echo "ftp://cloud.hawknetwork.de/FTP/$DEV_LATEST_FILE" > /tmp/latestimage
+		else
+		    sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+		fi
+		BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+		BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
+		BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
+		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
+		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
+			if [ -d /media/CSSTORAGE ]; then
+			    cs_echo "Start downloading..."
+			    touch /tmp/system_update_downloading > /dev/null 2>&1
+			    start_trigger
+			    sudo wget --no-check-certificate -t 3 -T 60 -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+			    if [ $? == 0 ]; then
+				cs_echo "OK: Download finished."
+				touch /tmp/system_update_ready > /dev/null 2>&1
+				if [ "$3" == "force" ]; then
+				    touch /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				fi
+			    else
+				sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+				sudo rm /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				cs_echo "ABORT: Download failed."
+			    fi
+			    sudo rm /tmp/system_update_downloading > /dev/null 2>&1
+			    sudo killall download_trigger > /dev/null 2>&1
+			    sudo rm /tmp/download_trigger > /dev/null 2>&1
+			else
+			    cs_echo "ABORT: CSSTORAGE not available as download destination."
+			fi
+		    else
+			cs_echo ""
+			cs_echo "ABORT: system is up to date."
+			cs_echo ""
+		    fi
+		else
+		    cs_echo ""
+		    cs_echo "ABORT: system is up to date."
+		    cs_echo ""
+		fi
+		;;
+	    check)
+		if [ "`ping -c 1 google.com`" ]; then
+		    cs_echo "Internet connection available"
+		    cs_echo ""
+		    # Check udev rules
+		    sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/udev/51-android.rules.md5
+		    else
+			sudo wget -q -O /tmp/51-android.rules.md5 --no-check-certificate https://raw.githubusercontent.com/opencardev/prebuilts/master/udev/51-android.rules.md5
+		    fi
+		    REMOTE_UDEV=$(cat /tmp/51-android.rules.md5 | awk {'print $1'})
+		    LOCAL_UDEV=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
+		    sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
+
+		    # Check crankshaft amangement tool
+		    sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
+		    else
+			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/csmt/crankshaft.md5
+		    fi
+		    REMOTE_CSMT=$(cat /tmp/crankshaft.md5 | awk {'print $1'})
+		    LOCAL_CSMT=$(md5sum /usr/local/bin/crankshaft | awk {'print $1'})
+		    sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
+
+		    # Check openauto
+		    sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/autoapp.md5
+		    else
+			sudo wget -q --no-check-certificate -O /tmp/autoapp.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/autoapp.md5
+		    fi
+		    REMOTE_OPENAUTO=$(cat /tmp/autoapp.md5 | awk {'print $1'})
+		    LOCAL_OPENAUTO=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
+		    sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
+
+		    # Check latest image
+		    sudo rm /tmp/latestimage > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			DEV_LATEST_FILE=`curl 'ftp://cloud.hawknetwork.de/FTP/' 2>/dev/null | grep zip | tail -1 | rev | cut -d" " -f1 | rev`
+			echo "ftp://cloud.hawknetwork.de/FTP/$DEV_LATEST_FILE" > /tmp/latestimage
+		    else
+			sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
+		    fi
+
+		    # Notifications
+		    # udev
+		    if [ "$REMOTE_UDEV" != "$LOCAL_UDEV" ]; then
+			cs_echo "New udev rules available!"
+			sudo rm /tmp/udev_update_available > /dev/null 2>&1
+			touch /tmp/udev_update_available
+		    else
+			sudo rm /tmp/udev_update_available > /dev/null 2>&1
+		    fi
+		    # csmt
+		    if [ "$REMOTE_CSMT" != "$LOCAL_CSMT" ]; then
+			cs_echo "New csmt available!"
+			sudo rm /tmp/csmt_update_available > /dev/null 2>&1
+			touch /tmp/csmt_update_available
+		    else
+			sudo rm /tmp/csmt_update_available > /dev/null 2>&1
+		    fi
+		    # openauto
+		    if [ "$REMOTE_OPENAUTO" != "$LOCAL_OPENAUTO" ]; then
+			cs_echo "New openauto available!"
+			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
+			touch /tmp/openauto_update_available
+		    else
+			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
+		    fi
+
+		    # latest image
+		    REMOTE_IMAGE=""
+		    BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+		    BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
+		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
+		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+			    cs_echo "New system image available!"
+			    sudo rm /tmp/system_update_available > /dev/null 2>&1
+			    sudo touch /tmp/system_update_available
+			    # Skip other updates cause newer system available including it
+			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+			    sudo rm /tmp/udev_update_available >/dev/null 2>&1
+			    REMOTE_IMAGE="new"
+			else
+			    sudo rm /tmp/system_update_available > /dev/null 2>&1
+			fi
+		    else
+			sudo rm /tmp/system_update_available > /dev/null 2>&1
+		    fi
+
+		    # no updates
+		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_IMAGE" != "new" ]; then
+			cs_echo "No new updates"
+		    fi
+		else
+		    cs_echo ""
+		    cs_echo "No internet connection available"
+		fi
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check${RESET}"
 		;;
 	esac
     fi
@@ -2252,6 +2516,11 @@ if [ ! -z $1 ]; then
     #syslog
     if [ $1 == "syslog" ]; then
 	cat /var/log/syslog
+    fi
+
+    #oalog
+    if [ $1 == "oalog" ]; then
+	cat /tmp/openauto.log
     fi
 
     #bluetooth
@@ -2626,6 +2895,22 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #screenshot
+    if [ $1 == "screenshot" ]; then
+	x11check=$(ps -ax | grep xorg | grep -v grep | tail -n1)
+	if [ "$x11check" != "" ]; then
+	    if [ "$2" == "jpg" ]; then
+		cs_echo "Taking screenshot... (/tmp/screenshot.jpg)"
+		sudo xwd -root -display :0 -silent | convert xwd:- jpg:- >/tmp/screenshot.jpg
+	    else
+		cs_echo "Taking screenshot... (/tmp/screenshot.png)"
+		sudo xwd -root -display :0 -silent | convert xwd:- png:- >/tmp/screenshot.png
+	    fi
+	else
+	    cs_echo "Openauto not running in X11 mode!"
+	fi
+    fi
+
     #debuglog
     if [ $1 == "debuglog" ]; then
         touch /tmp/debug_in_progress
@@ -2642,7 +2927,7 @@ if [ ! -z $1 ]; then
 	sudo cp -f /tmp/temp_recent_list /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /tmp/hotspot_active /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/openauto.ini /tmp/debuglogs/
-	sudo cp -f /home/pi/openauto.log /tmp/debuglogs/
+	sudo cp -f /tmp/openauto.log /tmp/debuglogs/
 	sudo cp -f /home/pi/openauto_wifi_recent.ini /tmp/debuglogs/ >/dev/null 2>&1
 	sudo cp -f /home/pi/.xinitrc /tmp/debuglogs/
 	cat /etc/crankshaft.build > /tmp/debuglogs/cs-version
@@ -2772,6 +3057,134 @@ if [ ! -z $1 ]; then
 	cs_bootro
         sudo rm -rf /tmp/debug_in_progress
         sudo rm -rf /tmp/debuglogs
+    fi
+
+    #initramfs
+    if [ $1 == "initramfs" ]; then
+	case $2 in
+	    clean)
+		cs_bootrw
+		cs_echo "Cleanup initramfs"
+                # cleanup
+		sudo rm /boot/initrd.img > /dev/null 2>&1
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+                sudo sed -i 's/^# Initramfs params for flashsystem//' /boot/config.txt
+                sudo sed -i 's/^initramfs initrd.img followkernel//' /boot/config.txt
+                sudo sed -i 's/^ramfsfile=initrd.img//' /boot/config.txt
+                sudo sed -i 's/^ramfsaddr=-1//' /boot/config.txt
+                sudo sed -i 's/rootdelay=10//' /boot/cmdline.txt
+                sudo sed -i 's/initrd=-1//' /boot/cmdline.txt
+                sudo sed -i 's/splash //' /boot/cmdline.txt
+                sudo sed -i 's/vt.global_cursor_default=0 //' /boot/cmdline.txt
+                sudo sed -i 's/plymouth.ignore-serial-consoles //' /boot/cmdline.txt
+		sudo sed -i 's/ *$//' /boot/cmdline.txt
+                sudo sed -i 's/$/ vt.global_cursor_default=0/' /boot/cmdline.txt
+                sudo sed -i 's/$/ plymouth.ignore-serial-consoles/' /boot/cmdline.txt
+                sudo sed -i 's/$/ splash/' /boot/cmdline.txt
+                sudo sed -i '/./,/^$/!d' /boot/config.txt
+		cs_bootro
+		;;
+	    create)
+		cs_bootrw
+		cs_echo "Creating initramfs"
+                # cleanup
+		sudo sed -i '/./,/^$/!d' /boot/config.txt
+                sudo sed -i 's/^# Initramfs params for flashsystem//' /boot/config.txt
+                sudo sed -i 's/^initramfs initrd.img followkernel//' /boot/config.txt
+                sudo sed -i 's/^ramfsfile=initrd.img//' /boot/config.txt
+                sudo sed -i 's/^ramfsaddr=-1//' /boot/config.txt
+                sudo sed -i 's/rootdelay=10//' /boot/cmdline.txt
+                sudo sed -i 's/initrd=-1//' /boot/cmdline.txt
+                sudo sed -i 's/splash //' /boot/cmdline.txt
+                sudo sed -i 's/vt.global_cursor_default=0 //' /boot/cmdline.txt
+                sudo sed -i 's/plymouth.ignore-serial-consoles //' /boot/cmdline.txt
+                sudo sed -i '/./,/^$/!d' /boot/config.txt
+		sudo rm /boot/initrd.img > /dev/null 2>&1
+                sudo mkinitramfs -o /boot/initrd.img > /dev/null 2>&1
+                # Set entries
+                sudo sh -c 'echo "" >> /boot/config.txt'
+                sudo sh -c 'echo "# Initramfs params for flashsystem" >> /boot/config.txt'
+                sudo sh -c 'echo "initramfs initrd.img followkernel" >> /boot/config.txt'
+                sudo sh -c 'echo "ramfsfile=initrd.img" >> /boot/config.txt'
+                sudo sh -c 'echo "ramfsaddr=-1" >> /boot/config.txt'
+                sudo sed -i 's/$/ rootdelay=10/' /boot/cmdline.txt
+                sudo sed -i 's/$/ initrd=-1/' /boot/cmdline.txt
+		cs_bootro
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft initramfs clean|create${RESET}"
+		;;
+	esac
+    fi
+
+    #i2c device check
+    if [ $1 == "i2ccheck" ]; then
+        device=$2
+        dline=$(echo $device | cut -c1)
+        drow=$(echo $device | cut -c2)
+        # replace hex char with correct array field
+        if [ "$drow" == "a" ]; then
+            drow=10
+        fi
+        if [ "$drow" == "b" ]; then
+            drow=11
+        fi
+        if [ "$drow" == "c" ]; then
+            drow=12
+        fi
+        if [ "$drow" == "d" ]; then
+            drow=13
+        fi
+        if [ "$drow" == "e" ]; then
+            drow=14
+        fi
+        if [ "$drow" == "f" ]; then
+            drow=15
+        fi
+        counter=0
+        i2cdetect -y 1 | tail -n8 | while read line; do
+            line=$(echo $line | cut -d: -f2)
+            # extend line 0 to fill array correct
+            if [ "$counter" == "0" ]; then
+                line="-- -- -- $line"
+            fi
+            IFS=' ' read -r -a array <<< "$line"
+            if [ "$dline" == "$counter" ]; then
+                if [ "${array[$drow]}" == "$device" ]; then
+                    cs_echo "Device 0x$device found."
+                    exit 0
+                elif [ "${array[$drow]}" == "UU" ]; then
+                    cs_echo "Device 0x$device found and in use by another process."
+                    exit 0
+                else
+                    cs_echo "No device found."
+                    exit 1
+                fi
+            fi
+            counter=$((counter+1))
+        done
+    fi
+
+    #network
+    if [ $1 == "network" ]; then
+	case $2 in
+	    0)
+		sudo wpa_cli -iwlan0 select_network 0
+		cs_echo "Network 0 selected"
+		;;
+	    1)
+		sudo wpa_cli -iwlan0 select_network 1
+		cs_echo "Network 1 selected"
+		;;
+	    auto)
+		sudo wpa_cli -iwlan0 enable_network 0
+		sudo wpa_cli -iwlan0 enable_network 1
+		cs_echo "Network 0 and 1 reenabled for auto select"
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft network 0|1|auto${RESET}"
+		;;
+	esac
     fi
 
     #version
@@ -2952,7 +3365,12 @@ else
     echo "        |- external           - Disable builtin bluetooth support to use external adapter"
     echo "        |- disable            - Disable builtin bluetooth support to use external adapter"
     echo ""
+    echo "screenshot                    Take a screenshot from openauto (only useable in x11 mode)"
+    echo "         |- jpg               - Take screenshot as jpg (by default png is used if not specified)"
+    echo ""
     echo "syslog                        Show os syslog"
+    echo ""
+    echo "oalog                         Show openauto log"
     echo ""
     echo "lightsensor                   Brightness control and day/night controlled by lightsensor"
     echo "     |- enable                - Enable support for tsl2561 i2c light sensor"
@@ -2963,14 +3381,30 @@ else
     echo "     |- classic               - Enable classic plymouth boot splash"
     echo "     |- custom                - Enable custom plymouth boot splash"
     echo ""
+    echo "mode                          Set system mode"
+    echo "   |- default                 - Enable default system mode"
+    echo "   |- dev                     - Enable dev system mode"
+    echo "   |- devapp                  - Enable dev system mode with app"
+    echo "   |- debug                   - Enable debug system mode"
+    echo ""
     echo "update                        Handle Updates"
     echo "     |- udev                  - Check And Update udev Rules For Device Detection"
     echo "     |- csmt                  - Check And Update Crankshaft Management Tool"
     echo "     |- openauto              - Check And Update openauto/helper - Warning: only use if requested by support!"
+    echo "     |- check                 - Check for new versions"
     echo ""
     echo "debuglog                      Create debug log for support requests"
     echo ""
+    echo "initramfs                     Handle initramfs"
+    echo "    |- clean                  - Remove initramfs entries"
+    echo "    |- create                 - Create initramfs and setup"
+    echo ""
     echo "temp                          Show current system temp"
+    echo ""
+    echo "i2ccheck xx                   Check if i2c device is present"
+    echo "                              xx = address (0x68 = 68 for xx)"
+    echo ""
+    echo "network x                     Force using wifi config 0|1|auto for wpa_supplicant"
     echo ""
     echo "version                       Show Vesion Of CSMT"
 fi
