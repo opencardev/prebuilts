@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.0.4
+version=2.0.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2238,27 +2238,30 @@ if [ ! -z $1 ]; then
 		    fi
 
 		    # latest image
-		    REMOTE_IMAGE=""
-		    BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
-		    BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
-		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
-			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
-			    cs_echo "New system image available!"
-			    sudo rm /tmp/system_update_available > /dev/null 2>&1
-			    sudo touch /tmp/system_update_available
-			    # Skip other updates cause newer system available including it
-			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
-			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
-			    sudo rm /tmp/udev_update_available >/dev/null 2>&1
-			    REMOTE_IMAGE="new"
+		    if [ "$(cat /tmp/latestimage)" != "" ]; then
+			REMOTE_IMAGE=""
+			BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+			BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
+			BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
+			if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+			    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ]; then
+				cs_echo "New system image available!"
+				sudo rm /tmp/system_update_available > /dev/null 2>&1
+				sudo touch /tmp/system_update_available
+				# Skip other updates cause newer system available including it
+				sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+				sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+				sudo rm /tmp/udev_update_available >/dev/null 2>&1
+				REMOTE_IMAGE="new"
+			    else
+				sudo rm /tmp/system_update_available > /dev/null 2>&1
+			    fi
 			else
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
 			fi
 		    else
-			sudo rm /tmp/system_update_available > /dev/null 2>&1
+			cs_echo "Empty image url."
 		    fi
-
 		    # no updates
 		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_IMAGE" != "new" ]; then
 			cs_echo "No new updates"
