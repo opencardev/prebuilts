@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.0.5
+version=2.0.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -440,7 +440,7 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'version')
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'version')
     if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
 	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|version${RESET}"
@@ -1897,6 +1897,29 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #branch select
+    if [ $1 == "branch" ]; then
+	case $2 in
+	    release)
+		echo "Current branch: $(cat /etc/crankshaft.branch)"
+		cs_systemrw
+		sudo sh -c 'echo "crankshaft-ng" > /etc/crankshaft.branch'
+		cs_systemro
+		echo "New branch: $(cat /etc/crankshaft.branch)"
+		;;
+	    dev)
+		echo "Current branch: $(cat /etc/crankshaft.branch)"
+		cs_systemrw
+		sudo sh -c 'echo "csng-dev" > /etc/crankshaft.branch'
+		cs_systemro
+		echo "New branch: $(cat /etc/crankshaft.branch)"
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft branch release|dev${RESET}"
+		;;
+	esac
+    fi
+
     #updates
     if [ $1 == "update" ]; then
 	case $2 in
@@ -2127,32 +2150,38 @@ if [ ! -z $1 ]; then
 		else
 		    sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
 		fi
-		BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
-		BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
-		BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-		if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
-		    if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
-			if [ -d /media/CSSTORAGE ]; then
-			    cs_echo "Start downloading..."
-			    touch /tmp/system_update_downloading > /dev/null 2>&1
-			    start_trigger
-			    sudo wget --no-check-certificate -t 3 -T 60 -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
-			    if [ $? == 0 ]; then
-				cs_echo "OK: Download finished."
-				touch /tmp/system_update_ready > /dev/null 2>&1
-				if [ "$3" == "force" ]; then
-				    touch /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+		if [ "$(cat /tmp/latestimage)" != "" ]; then
+		    BUILDID_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d. -f1 | rev | cut -d- -f1 | rev`
+		    BUILDDATE_LATEST=`echo "$(basename $(cat /tmp/latestimage))" | cut -d- -f1-3 | sed 's/-//g'`
+		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
+		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
+			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
+			    if [ -d /media/CSSTORAGE ]; then
+				cs_echo "Start downloading..."
+				touch /tmp/system_update_downloading > /dev/null 2>&1
+				start_trigger
+				sudo wget --no-check-certificate -t 3 -T 60 -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+				if [ $? == 0 ]; then
+				    cs_echo "OK: Download finished."
+				    touch /tmp/system_update_ready > /dev/null 2>&1
+				    if [ "$3" == "force" ]; then
+					touch /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				    fi
+				else
+				    sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+				    sudo rm /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				    cs_echo "ABORT: Download failed."
 				fi
+				sudo rm /tmp/system_update_downloading > /dev/null 2>&1
+				sudo killall download_trigger > /dev/null 2>&1
+				sudo rm /tmp/download_trigger > /dev/null 2>&1
 			    else
-				sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
-				sudo rm /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
-				cs_echo "ABORT: Download failed."
+				cs_echo "ABORT: CSSTORAGE not available as download destination."
 			    fi
-			    sudo rm /tmp/system_update_downloading > /dev/null 2>&1
-			    sudo killall download_trigger > /dev/null 2>&1
-			    sudo rm /tmp/download_trigger > /dev/null 2>&1
 			else
-			    cs_echo "ABORT: CSSTORAGE not available as download destination."
+			    cs_echo ""
+			    cs_echo "ABORT: system is up to date."
+			    cs_echo ""
 			fi
 		    else
 			cs_echo ""
@@ -2160,9 +2189,7 @@ if [ ! -z $1 ]; then
 			cs_echo ""
 		    fi
 		else
-		    cs_echo ""
-		    cs_echo "ABORT: system is up to date."
-		    cs_echo ""
+		    cs_echo "ABORT: Empty image url."
 		fi
 		;;
 	    check)
@@ -2259,8 +2286,6 @@ if [ ! -z $1 ]; then
 			else
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
 			fi
-		    else
-			cs_echo "Empty image url."
 		    fi
 		    # no updates
 		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_IMAGE" != "new" ]; then
