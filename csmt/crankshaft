@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.0.7
+version=2.1.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1564,7 +1564,20 @@ if [ ! -z $1 ]; then
 		cs_bootrw
 		# Copy settings file
 		sudo cp -f /tmp/openauto.ini /boot/crankshaft/openauto.ini
-		cs_bootrw
+
+		if [ -f /tmp/zoomlevel ]; then
+		    sudo sed -i 's/^RPICAM_ZOOM=.*/RPICAM_ZOOM='$(cat /tmp/zoomlevel)'/' /boot/crankshaft/crankshaft_env.sh
+		    sudo rm /tmp/zoomlevel >/dev/null 2>&1
+		fi
+		# save position changes if made
+		if [ -f /tmp/ycorrection ]; then
+		    sudo sed -i 's/^RPICAM_YCORRECTION=.*/RPICAM_YCORRECTION='$(cat /tmp/ycorrection)'/' /boot/crankshaft/crankshaft_env.sh
+		    sudo rm /tmp/ycorrection >/dev/null 2>&1
+		fi
+		if [ "$(systemctl is-active rpicamserver)" == "active" ]; then
+		    sudo systemctl restart rpicamserver
+		fi
+		cs_bootro
 		;;
 	    restore)
 		if [ -f /boot/crankshaft/openauto.ini ]; then
@@ -1661,7 +1674,6 @@ if [ ! -z $1 ]; then
 		cs_echo "${RED}${BOLD}Reboot needed to activate!${RESET}"
 		;;
 	    sync)
-
 		# sync rtc time with sys
 		sudo hwclock -s >/dev/null 2>&1
 		# try sync with timeserver
@@ -1670,23 +1682,22 @@ if [ ! -z $1 ]; then
 		then
 		    cs_echo "---------------------------------------------------------"
 		    cs_echo "Internet connection present. Syncing RTC with time server"
-		    cs_echo "---------------------------------------------------------"
 		    cs_systemrw
 		    # disable/enable timesyncd to trigger resync
 		    sudo timedatectl set-ntp 0
 		    sudo timedatectl set-ntp 1
 		    cs_echo "---------------------------------------------------------"
 		    cs_echo "Wait for timesync..."
-		    cs_echo "---------------------------------------------------------"
 		    sleep 10
 		    # write time from server to hwclock
-		    sudo hwclock --systohc >/dev/null 2>&1
+		    sudo hwclock --systohc | logger
 		    # write time from hwclock to sys
-		    sudo hwclock --hctosys >/dev/null 2>&1
+		    sudo hwclock --hctosys | logger
 		    # show result
 		    sudo timedatectl status
-		    cs_echo ""
-		    cat /var/log/syslog | grep Synchronized | tail -n1 | awk {'print $3" "$6" "$7" "$8" "$9" "$10'}
+		    sudo timedatectl status | logger
+		    result=$(cat /var/log/syslog | grep Synchronized | tail -n1 | awk {'print $3" "$6" "$7" "$8" "$9" "$10'})
+		    cs_echo "$result"
 		    cs_systemrw
 		else
 		    cs_echo "---------------------------------------------------------"
@@ -2025,6 +2036,15 @@ if [ ! -z $1 ]; then
 		    fi
 		fi
 		sudo rm /tmp/csmt_updating > /dev/null 2>&1
+
+		# csmt failsave restore if missing and old build present
+		if [ ! -f /usr/local/bin/crankshaft ] && [ -f /usr/local/bin/crankshaft.old ]; then
+		    cs_systemrw
+		    cs_echo "WARN: csmt was missing - failsave restore done!"
+		    sudo mv -f /usr/local/bin/crankshaft.old /usr/local/bin/crankshaft
+		    cs_systemro
+		fi
+
 		;;
 	    openauto)
 		touch /tmp/openauto_updating
@@ -2083,6 +2103,15 @@ if [ ! -z $1 ]; then
 			cs_systemro
 		    fi
 		fi
+
+		# openauto failsave restore if missing and old build present
+		if [ ! -f /usr/local/bin/autoapp ] && [ -f /usr/local/bin/autoapp.old ]; then
+		    cs_systemrw
+		    cs_echo "WARN: openauto was missing - failsave restore done!"
+		    sudo mv -f /usr/local/bin/autoapp.old /usr/local/bin/autoapp
+		    cs_systemro
+		fi
+
 		# autoapp_helper
 		sudo rm /tmp/autoapp_helper.md5 > /dev/null 2>&1
 		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
@@ -2135,9 +2164,19 @@ if [ ! -z $1 ]; then
 			cs_systemro
 		    fi
 		fi
+
+		# autoapp_helper failsave restore if missing and old build present
+		if [ ! -f /usr/local/bin/autoapp_helper ] && [ -f /usr/local/bin/autoapp_helper.old ]; then
+		    cs_systemrw
+		    cs_echo "WARN: autoapp_helper was missing - failsave restore done!"
+		    sudo mv -f /usr/local/bin/autoapp_helper.old /usr/local/bin/autoapp_helper
+		    cs_systemro
+		fi
+
 		if [ $restart -eq 1 ]; then
 		    cs_echo "Restarting openauto after update"
 		    touch /tmp/openauto_restart_updated > /dev/null 2>&1
+		    sudo rm /tmp/openauto_updating > /dev/null 2>&1
 		    sudo systemctl restart openauto
 		fi
 		sudo rm /tmp/openauto_updating > /dev/null 2>&1
@@ -2156,20 +2195,20 @@ if [ ! -z $1 ]; then
 		    BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
 		    if [ ${BUILDDATE_LATEST} -eq ${BUILDDATE_CURRENT} ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
 			if [ "$BUILDID_LATEST" != "$(cat /etc/crankshaft.build)" ] || [ ${BUILDDATE_LATEST} -gt ${BUILDDATE_CURRENT} ] || [ "$3" == "force" ]; then
-			    if [ -d /media/CSSTORAGE ]; then
+			    if [ -d /media/USBDRIVES/CSSTORAGE ]; then
 				cs_echo "Start downloading..."
 				touch /tmp/system_update_downloading > /dev/null 2>&1
 				start_trigger
-				sudo wget --no-check-certificate -t 3 -T 60 -O "/media/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
+				sudo wget --no-check-certificate -t 3 -T 60 -O "/media/USBDRIVES/CSSTORAGE/$(basename $(cat /tmp/latestimage))" "$(cat /tmp/latestimage)"
 				if [ $? == 0 ]; then
 				    cs_echo "OK: Download finished."
 				    touch /tmp/system_update_ready > /dev/null 2>&1
 				    if [ "$3" == "force" ]; then
-					touch /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+					touch /media/USBDRIVES/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
 				    fi
 				else
-				    sudo rm /media/CSSTORAGE/$(basename $(cat /tmp/latestimage))
-				    sudo rm /media/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+				    sudo rm /media/USBDRIVES/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+				    sudo rm /media/USBDRIVES/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
 				    cs_echo "ABORT: Download failed."
 				fi
 				sudo rm /tmp/system_update_downloading > /dev/null 2>&1
@@ -2238,6 +2277,10 @@ if [ ! -z $1 ]; then
 			sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
 		    fi
 
+		    # Check latest patron image (upcoming public release)
+		    sudo rm /tmp/latestpatreon > /dev/null 2>&1
+		    sudo wget -q --no-check-certificate -O /tmp/latestpatreon https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/patreon
+
 		    # Notifications
 		    # udev
 		    if [ "$REMOTE_UDEV" != "$LOCAL_UDEV" ]; then
@@ -2287,6 +2330,21 @@ if [ ! -z $1 ]; then
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
 			fi
 		    fi
+
+		    if [ "$(cat /tmp/latestpatreon)" != "" ]; then
+			BUILDDATE_LATESTPATREON=`echo "$(basename $(cat /tmp/latestpatreon))" | cut -d- -f1-3 | sed 's/-//g'`
+			BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
+			if [ ${BUILDDATE_LATESTPATREON} -eq  ${BUILDDATE_CURRENT} ]; then
+			    cs_echo "You are on latest patreon image - skipping updates until public release!"
+			    # Skip updates cause newer system image is in pipeline for public release
+			    sudo rm /tmp/system_update_available > /dev/null 2>&1
+			    sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+			    sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+			    sudo rm /tmp/udev_update_available >/dev/null 2>&1
+			    REMOTE_IMAGE=""
+			fi
+		    fi
+
 		    # no updates
 		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_IMAGE" != "new" ]; then
 			cs_echo "No new updates"
