@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.1.4
+version=2.2.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -440,10 +440,10 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'version')
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'version')
     if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|version${RESET}"
 	exit 0
     fi
 
@@ -2334,7 +2334,7 @@ if [ ! -z $1 ]; then
 		    if [ "$(cat /tmp/latestpatreon)" != "" ]; then
 			BUILDDATE_LATESTPATREON=`echo "$(basename $(cat /tmp/latestpatreon))" | cut -d- -f1-3 | sed 's/-//g'`
 			BUILDDATE_CURRENT=`cat /etc/crankshaft.date | sed 's/-//g'`
-			if [ ${BUILDDATE_LATESTPATREON} -eq  ${BUILDDATE_CURRENT} ]; then
+			if [ ${BUILDDATE_LATESTPATREON} -eq  ${BUILDDATE_CURRENT} ] && [ "$(cat /etc/crankshaft.branch)" != "csng-dev" ]; then
 			    cs_echo "You are on latest patreon image - skipping updates until public release!"
 			    # Skip updates cause newer system image is in pipeline for public release
 			    sudo rm /tmp/system_update_available > /dev/null 2>&1
@@ -2354,8 +2354,21 @@ if [ ! -z $1 ]; then
 		    cs_echo "No internet connection available"
 		fi
 		;;
+	    cancel)
+		sudo killall wget > /dev/null 2>&1
+		sudo killall download_trigger > /dev/null 2>&1
+		sudo rm /tmp/system_update_available > /dev/null 2>&1
+		sudo rm /tmp/openauto_update_available >/dev/null 2>&1
+		sudo rm /tmp/csmt_update_available >/dev/null 2>&1
+		sudo rm /tmp/udev_update_available >/dev/null 2>&1
+		sudo rm /tmp/system_update_downloading > /dev/null 2>&1
+		sudo rm /media/USBDRIVES/CSSTORAGE/FORCE_FLASH > /dev/null 2>&1
+		sudo rm /tmp/system_update_ready > /dev/null 2>&1
+		sudo rm /tmp/download_trigger > /dev/null 2>&1
+		sudo rm /media/USBDRIVES/CSSTORAGE/$(basename $(cat /tmp/latestimage))
+		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check|cancel${RESET}"
 		;;
 	esac
     fi
@@ -3071,24 +3084,25 @@ if [ ! -z $1 ]; then
 	cs_echo ""
 	cs_echo "Blanking wifi passwords..."
 	cs_echo ""
-	sudo sed -i 's/WIFI_PSK=.*/WIFI_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
-	sudo sed -i 's/HOTSPOT_PSK=.*/HOTSPOT_PSK=xxxxxxxxx/' /tmp/debuglogs/crankshaft_env.sh
-	sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxxxxxxxx/' /tmp/debuglogs/hostapd.conf
-	sudo sed -i 's/psk=.*/psk=xxxxxxxxx/' /tmp/debuglogs/wpa_supplicant.conf
+	sudo sed -i 's/WIFI_PSK=.*/WIFI_PSK=xxx cleared xxx/' /tmp/debuglogs/crankshaft_env.sh
+	sudo sed -i 's/WIFI2_PSK=.*/WIFI2_PSK=xxx cleared xxx/' /tmp/debuglogs/crankshaft_env.sh
+	sudo sed -i 's/HOTSPOT_PSK=.*/HOTSPOT_PSK=xxx cleared xxx/' /tmp/debuglogs/crankshaft_env.sh
+	sudo sed -i 's/wpa_passphrase=.*/wpa_passphrase=xxx cleared xxx/' /tmp/debuglogs/hostapd.conf
+	sudo sed -i 's/psk=.*/psk=xxx cleared xxx/' /tmp/debuglogs/wpa_supplicant.conf
 	if [ "${WIFI_PSK}" != "" ]; then
 	    if [ -f /tmp/debuglogs/autoapp_helper_command ]; then
-		sudo sed -i 's/'"$WIFI_PSK"'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+		sudo sed -i 's/'"$WIFI_PSK"'/xxx cleared xxx/' /tmp/debuglogs/autoapp_helper_command
 	    fi
 	    if [ -f /tmp/debuglogs/return_value ]; then
-		sudo sed -i 's/'"$WIFI_PSK"'/xxxxxxxxx/' /tmp/debuglogs/return_value
+		sudo sed -i 's/'"$WIFI_PSK"'/xxx cleared xxx/' /tmp/debuglogs/return_value
 	    fi
 	fi
 	if [ ! -z $HOTSPOT_PSK ]; then
 	    if [ -f /tmp/debuglogs/autoapp_helper_command ]; then
-		sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/autoapp_helper_command
+		sudo sed -i 's/'$HOTSPOT_PSK'/xxx cleared xxx/' /tmp/debuglogs/autoapp_helper_command
 	    fi
 	    if [ -f /tmp/debuglogs/return_value ]; then
-		sudo sed -i 's/'$HOTSPOT_PSK'/xxxxxxxxx/' /tmp/debuglogs/return_value
+		sudo sed -i 's/'$HOTSPOT_PSK'/xxx cleared xxx/' /tmp/debuglogs/return_value
 	    fi
 	fi
 	sudo systemctl daemon-reload
@@ -3273,6 +3287,51 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    # samba
+    if [ $1 == "samba" ]; then
+	case $2 in
+	    start)
+		cs_echo "Starting samba..."
+		sudo systemctl start smbd
+		sudo systemctl start nmbd
+		SMBD=`systemctl status smbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		NMBD=`systemctl status nmbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		if [ "$SMBD" == "running" ] && [ "$NMBD" == "running" ]; then
+		    touch /tmp/samba_running
+		    cs_bootrw
+		else
+		    sudo rm -f /tmp/samba_running >/dev/null 2>&1
+		fi
+		cs_echo "SMBD: $SMBD"
+		cs_echo "NMBD: $NMBD"
+		;;
+	    stop)
+		cs_echo "Stopping samba..."
+		sudo systemctl stop nmbd
+		sudo systemctl stop smbd
+		SMBD=`systemctl status smbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		NMBD=`systemctl status nmbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		if [ "$SMBD" == "" ] && [ "$NMBD" == "" ]; then
+		    sudo rm -f /tmp/samba_running >/dev/null 2>&1
+		    cs_echo "SMBD: stopped"
+		    cs_echo "NMBD: stopped"
+		else
+		    cs_echo "SMBD: $SMBD"
+		    cs_echo "NMBD: $NMBD"
+		fi
+		cs_bootro
+		;;
+	    status)
+		SMBD=`systemctl status smbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		NMBD=`systemctl status nmbd | grep running | awk {'print $3'} | cut -d'(' -f2 | cut -d')' -f1`
+		cs_echo "SMBD: $SMBD"
+		cs_echo "NMBD: $NMBD"
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft samba start|stop|status${RESET}"
+		;;
+	esac
+    fi
     #version
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
@@ -3478,6 +3537,7 @@ else
     echo "     |- csmt                  - Check And Update Crankshaft Management Tool"
     echo "     |- openauto              - Check And Update openauto/helper - Warning: only use if requested by support!"
     echo "     |- check                 - Check for new versions"
+    echo "     |- cancel                - Cancel in progress image download"
     echo ""
     echo "debuglog                      Create debug log for support requests"
     echo ""
@@ -3491,6 +3551,10 @@ else
     echo "                              xx = address (0x68 = 68 for xx)"
     echo ""
     echo "network x                     Force using wifi config 0|1|auto for wpa_supplicant"
+    echo ""
+    echo "samba                         Control Samba Server"
+    echo "    |- start                  - Start Samba Server (boot will switch to rw if not in dev mode)"
+    echo "    |- stop                   - Stop Samba Server"
     echo ""
     echo "version                       Show Vesion Of CSMT"
 fi
