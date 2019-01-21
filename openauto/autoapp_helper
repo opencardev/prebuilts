@@ -323,6 +323,22 @@ if [ "${array[0]}" == "setparams" ]; then
         else
             crankshaft rpicam disable
         fi
+        sudo sed -i 's/^RPICAM_HFLIP=.*/RPICAM_HFLIP='$(echo ${array[51]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_VFLIP=.*/RPICAM_VFLIP='$(echo ${array[52]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_ROTATION=.*/RPICAM_ROTATION='$(echo ${array[53]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_RESOLUTION=.*/RPICAM_RESOLUTION='$(echo ${array[54]})'/' /boot/crankshaft/crankshaft_env.sh
+
+        if [ -f /tmp/zoomlevel ]; then
+            sudo sed -i 's/^RPICAM_ZOOM=.*/RPICAM_ZOOM='$(cat /tmp/zoomlevel)'/' /boot/crankshaft/crankshaft_env.sh
+            sudo rm /tmp/zoomlevel >/dev/null 2>&1
+        fi
+        if [ -f /tmp/ycorrection ]; then
+            sudo sed -i 's/^RPICAM_YCORRECTION=.*/RPICAM_YCORRECTION='$(cat /tmp/ycorrection)'/' /boot/crankshaft/crankshaft_env.sh
+            sudo rm /tmp/ycorrection >/dev/null 2>&1
+        fi
+        if [ "$(systemctl is-active rpicamserver)" == "active" ]; then
+            sudo systemctl restart rpicamserver
+        fi
     fi
 
     # bluetooth
@@ -416,18 +432,15 @@ if [ "${array[0]}" == "setparams" ]; then
     # restart gpiotrigger
     sudo systemctl restart gpiotrigger
 
-    # restore brightness
-    crankshaft brightness restore
+    # restore brightness if not controlled by lightsensor
+    if [ ! -f /etc/cs_lightsensor ]; then
+        crankshaft brightness restore
+    fi
 
     # Done
     echo "configure done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
     sudo rm /tmp/config_in_progress
-fi
-
-# set wifiparams to system
-if [ "${array[0]}" == "setwifiparams" ]; then
-    echo "$@" | cut -d'#' -f2- | sed 's/###/\n/g' > /tmp/wifi_cred
 fi
 
 # get params from system
@@ -460,91 +473,20 @@ if [ "$1" == "getparams" ]; then
         textshutdown="$remainingshutdown left"
     fi
 
-    # free mem
-    mem=$(free -h | grep Mem | awk {'print $4'})
-
-    # cpu freq
-    typeset -i freq
-    freq=$(sudo cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_cur_freq)/1000
-
-    # cpu temp
-    temp=$(/opt/vc/bin/vcgencmd measure_temp | cut -d= -f2)
-
-
-    # versiontring
-    versionstring=$(cat /etc/crankshaft.build)
-
-    # datestring
-    datestring=$(cat /etc/crankshaft.date)
-
     # create tz listing
     cat /usr/share/zoneinfo/zone1970.tab | grep / | awk {'print $3'} | sort > /tmp/timezone_listing
 
-    # get current timezone
-    timezone=$(cat /etc/timezone)
-
-    # get current rtc of present
-    rtc=$(cat /boot/config.txt | grep dtoverlay=i2c-rtc | cut -d, -f2)
-
     # get current dac
     dac=$(cat /boot/config.txt | grep -e 'dtoverlay=allo' -e 'dtoverlay=hifiberry' -e 'dtoverlay=audioinjector' -e 'dtoverlay=iqaudio' | cut -d= -f2 | sed 's/dtoverlay=//')
+
     # check for onboard if no dac
     if [ -z $dac ]; then
         dac=$(cat /boot/config.txt | grep -e 'dtparam=audio=on' | cut -d= -f2 | sed 's/dtoverlay=//')
     fi
 
-    custombrightness=0
-    if [ ! -z ${CUSTOM_BRIGHTNESS_COMMAND} ]; then
-        custombrightness=${CUSTOM_BRIGHTNESS_COMMAND}
-    fi
-
-    hotspot_ssid=$(cat /etc/hostapd/hostapd.conf | grep '^ssid=' | cut -d= -f2)
-
-    # get rpi cam enabled
-    CAM=$(cat /boot/config.txt | grep '^start_x=1' | tail -n1)
-    if [ ! -z $CAM ]; then
-        CAM="enabled"
-    else
-        CAM="none"
-    fi
-
-    # bt mac
-    BTMAC=`bt-adapter -l | grep '(' | cut -d'(' -f2 | cut -d')' -f1 | tail -n1`
-
-    # internal/external
-    EXT=$(cat /boot/config.txt | grep '^dtoverlay=pi3-disable-bt' | tail -n1)
-    if [ -z $EXT ]; then
-        BTTYPE="builtin"
-    else
-        BTTYPE="external"
-    fi
-    if [ ${ENABLE_BLUETOOTH} -eq 0 ]; then
-        BTTYPE="none"
-    fi
-
-    # get current rtc of present
-    sdoc=$(cat /boot/config.txt | grep '^dtoverlay=sdtweak')
-    if [ "$sdoc" != "" ]; then
-        sdoc="enabled"
-    else
-        sdoc="disabled"
-    fi
-
-    # lightsensor
-    if [ -f /etc/cs_lightsensor ]; then
-        lightsensor="enabled"
-    else
-        lightsensor="disabled"
-    fi
-
-    # plymouth theme
-    plymouththeme=$(cat /etc/plymouth/plymouthd.conf | grep '^Theme=' | cut -d= -f2) > /dev/null 2>&1
-
-    CURRENT_WIFI_SSID="$(iwgetid | cut -d: -f2 | tr -d '"')"
-
     # create return value string
     sudo rm /tmp/return_value > /dev/null 2>&1
-    echo "${versionstring}#${datestring}#${levelplay}#${levelcap}#${textshutdown}#${DISCONNECTION_POWEROFF_MINS}#${textdisconnect}#${DISCONNECTION_SCREEN_POWEROFF_SECS}#${RTC_DAY_START}#${RTC_NIGHT_START}#${ENABLE_GPIO}#${DEV_PIN}#${INVERT_PIN}#${X11_PIN}#${REARCAM_PIN}#${ANDROID_PIN}#${START_X11}#${FLIP_SCREEN}#${mem}#${freq}#${temp}#${rtc}#${timezone}#${dac}#${DISCONNECTION_POWEROFF_DISABLE}#${DISCONNECTION_SCREEN_POWEROFF_DISABLE}#$custombrightness#${DEBUG_MODE}#${IGNITION_PIN}#${IGNITION_DELAY}#${CURRENT_WIFI_SSID}#${ENABLE_HOTSPOT}#${hotspot_ssid}#${CAM}#${ENABLE_BLUETOOTH}#${ENABLE_PAIRABLE}#${EXTERNAL_BLUETOOTH}#${BTMAC}#${BTTYPE}#${sdoc}#${lightsensor}#${DAYNIGHT_PIN}#${RTC_DAYNIGHT}#$plymouththeme#$WIFI_COUNTRY#$SCREEN_POWEROFF_OVERRIDE#" > /tmp/return_value
+    echo "${levelplay}#${levelcap}#${textshutdown}#${textdisconnect}#${dac}#" > /tmp/return_value
     echo "get system values done" >> /tmp/autoapp_helper_command
     echo "-------------------------------------" >> /tmp/autoapp_helper_command
 fi
@@ -678,12 +620,14 @@ if [ "$1" == "startcustombrightness" ]; then
 fi
 
 if [ "$1" == "enablepairing" ]; then
+    touch /tmp/bluetooth_pairable
     touch /tmp/enable_pairing
+    sudo bt-adapter --set Powered 1 > /dev/null 2>&1
     sudo bt-adapter --set Pairable 1 > /dev/null 2>&1
     sudo bt-adapter --set PairableTimeout 120 > /dev/null 2>&1
     log_echo "Set bluetooth adapter pairable for 120 seconds"
-    sleep 2
-    sudo rm -f /tmp/enable_pairing
+    sleep 120 && sudo rm -f /tmp/bluetooth_pairable &
+    sleep 2 && sudo rm -f /tmp/enable_pairing &
 fi
 
 if [ "$1" == "getvolume" ]; then
@@ -758,6 +702,19 @@ fi
 
 if [ "$1" == "usbreset" ] && [ -f /tmp/android_device ]; then
     sudo usbreset $(cat /tmp/android_device | head -n1) > /dev/null 2>&1
+    sleep 2
+    # check if device still in aa mode
+    log_echo "USBRESET: Check if usb reset was successfull..."
+    CHECK=`lsusb | grep 'Google' | grep 'accessory mode' | awk {'print $2"/"$4'} | cut -d: -f1`
+    if [ "$CHECK" != "" ]; then
+        log_echo "USBRESET: Reset failed (/dev/bus/usb/$CHECK)!"
+        sudo usbreset /dev/bus/usb/$CHECK
+        log_echo "USBRESET: Retried!"
+        sleep 1
+        sudo udevadm control --reload-rules && sudo udevadm trigger
+    else
+        log_echo "USBRESET: ok."
+    fi
 fi
 
 exit 0
