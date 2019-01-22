@@ -327,6 +327,12 @@ if [ "${array[0]}" == "setparams" ]; then
         sudo sed -i 's/^RPICAM_VFLIP=.*/RPICAM_VFLIP='$(echo ${array[52]})'/' /boot/crankshaft/crankshaft_env.sh
         sudo sed -i 's/^RPICAM_ROTATION=.*/RPICAM_ROTATION='$(echo ${array[53]})'/' /boot/crankshaft/crankshaft_env.sh
         sudo sed -i 's/^RPICAM_RESOLUTION=.*/RPICAM_RESOLUTION='$(echo ${array[54]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_FPS=.*/RPICAM_FPS='$(echo ${array[55]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_AWB=.*/RPICAM_AWB='$(echo ${array[56]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_EXP=.*/RPICAM_EXP='$(echo ${array[57]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_LOOPTIME=.*/RPICAM_LOOPTIME='$(echo ${array[58]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_LOOPCOUNT=.*/RPICAM_LOOPCOUNT='$(echo ${array[59]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^RPICAM_AUTORECORDING=.*/RPICAM_AUTORECORDING='$(echo ${array[60]})'/' /boot/crankshaft/crankshaft_env.sh
 
         if [ -f /tmp/zoomlevel ]; then
             sudo sed -i 's/^RPICAM_ZOOM=.*/RPICAM_ZOOM='$(cat /tmp/zoomlevel)'/' /boot/crankshaft/crankshaft_env.sh
