@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.2
+version=2.2.3
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -365,43 +365,6 @@ function cs_check_i2c() {
     cs_systemro
 }
 
-# Display functions
-
-function cs_check_usbdevice() {
-    sudo lsusb | cut -d" " -f2,4 | sed 's/://g' |
-    while IFS= read -r line
-    do
-	bus=$(echo $line | cut -d" " -f1)
-	device=$(echo $line | cut -d" " -f2)
-	FULLDESC=`sudo udevadm info -q all -n /dev/bus/usb/$bus/$device | grep -Ei '(ID_MODEL=|ID_MODEL_ID=|ID_VENDOR=|ID_VENDOR_ID=)' | sed 's/E: //g'`
-	ID_MODEL=`echo $FULLDESC | cut -d" " -f1 | grep ID_MODEL= | cut -d= -f2`
-	ID_MODEL_ID=`echo $FULLDESC | cut -d" " -f2 | grep ID_MODEL_ID= | cut -d= -f2`
-	ID_VENDOR=`echo $FULLDESC | cut -d" " -f3 | grep ID_VENDOR= | cut -d= -f2`
-	ID_VENDOR_ID=`echo $FULLDESC | cut -d" " -f4 | grep ID_VENDOR_ID= | cut -d= -f2`
-	if [ "$ID_MODEL" == "$1" ] && [ "$ID_MODEL_ID" == "$2" ] && [ "$ID_VENDOR" == "$3" ] && [ "$ID_VENDOR_ID" == "$4" ]; then
-	    cs_echo "Identified!"
-	fi
-    done
-}
-
-function cs_show_autodetect() {
-    sudo plymouth --hide-splash > /dev/null 2>&1 # hide the boot splash
-    sudo chvt 3
-    echo "[${RED}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
-    echo "[${RED}${BOLD} INFO ${RESET}] Display identified - Setting up..." >/dev/tty3
-    echo "[${RED}${BOLD} INFO ${RESET}] *******************************************************" >/dev/tty3
-}
-
-function cs_clean_display_entry() {
-    sudo sed -i 's/^# Custom display settings.*//' /boot/config.txt
-    sudo sed -i '/hdmi_group=/d' /boot/config.txt
-    sudo sed -i '/hdmi_mode=/d' /boot/config.txt
-    sudo sed -i '/hdmi_cvt=/d' /boot/config.txt
-    sudo sed -i '/hdmi_drive=/d' /boot/config.txt
-    sudo sed -i '/hdmi_force_hotplug=/d' /boot/config.txt
-    sudo sed -i '/./,/^$/!d' /boot/config.txt
-}
-
 function cs_clear_screen_header() {
     PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
     if [[ ! $SHLVL -gt 2 ]] && [ -z $PPIDCHECK ]; then
@@ -412,17 +375,13 @@ function cs_clear_screen_header() {
 }
 
 function cs_clear_bluetooth() {
-# Remove all previous paired devices
-list=""
-bt-device -l | grep -E -o '[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}' | { while read line
-do
-       list="$list remove $line
-"
-done
-bluetoothctl << EOF
-$list
-EOF
-}
+    # Remove all previous paired devices
+    list=""
+    bt-device -l | grep -E -o '[[:xdigit:]]{2}(:[[:xdigit:]]{2}){5}' | while read line
+    do
+	echo -e 'disconnect '$line'\nquit' | bluetoothctl > /dev/null 2>&1
+	echo -e 'remove '$line'\nquit' | bluetoothctl > /dev/null 2>&1
+    done
 }
 
 # echo if user logged in
@@ -1469,66 +1428,6 @@ if [ ! -z $1 ]; then
 		    sudo vcgencmd display_power 1 >/dev/null 2>&1
 		fi
 		;;
-	    autodetect)
-		if [ "$(dmesg | grep -i ft5406)" != "" ]; then
-		    # RPi Display
-		    cs_show_autodetect
-		    cs_bootrw
-		    sudo sh -c "echo 'RPi Display' > /boot/crankshaft/display_detected"
-		    cs_clean_display_entry
-		    # Disable autodetect
-		    sudo sed -i 's/^DISPLAY_AUTO_DETECT=.*/DISPLAY_AUTO_DETECT=0/' /boot/crankshaft/crankshaft_env.sh
-		    cs_bootro
-		    sudo /sbin/shutdown -r now
-		fi
-
-		if [ $DISPLAY_AUTO_DETECT -eq 1 ]; then
-		    # Waveshare Inc. 7inch HDMI LCD(B) Rev2.1
-		    check=$(cs_check_usbdevice "By_ZH851" "0005" "BYZHYYZHY" "0eef")
-		    if [ "$check" == "Identified!" ]; then
-			cs_show_autodetect
-		        cs_bootrw
-		        sudo sh -c "echo '0eef:0005 - Waveshare Inc. 7inch HDMI LCD (b) Rev 2.1' > /boot/crankshaft/display_detected"
-		        cs_clean_display_entry
-		        sudo sh -c "echo '' >> /boot/config.txt"
-		        sudo sh -c "echo '# Custom display settings' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_group=2' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_mode=87' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_cvt=800 480 60 6 0 0 0' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_drive=1' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_force_hotplug=1' >> /boot/config.txt"
-			# Disable autodetect
-			sudo sed -i 's/^DISPLAY_AUTO_DETECT=.*/DISPLAY_AUTO_DETECT=0/' /boot/crankshaft/crankshaft_env.sh
-		        cs_bootro
-			sudo /sbin/shutdown -r now
-		    fi
-
-		    # eGalax Inc. Touch Display
-		    check=`/usr/bin/lsusb | grep 0eef:0001 | awk {'print $6'}`
-		    if [ ! -z $check ]; then
-                        cs_show_autodetect
-		        cs_bootrw
-		        sudo sh -c "echo '0eef:0001 - eGalax Inc. Touch Display' > /boot/crankshaft/display_detected"
-		        cs_clean_display_entry
-		        sudo sh -c "echo '' >> /boot/config.txt"
-		        sudo sh -c "echo '# Custom display settings' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_group=2' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_mode=87' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_cvt=800 480 60 3 0 0 0' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_drive=1' >> /boot/config.txt"
-		        sudo sh -c "echo 'hdmi_force_hotplug=1' >> /boot/config.txt"
-			# Disable autodetect
-			sudo sed -i 's/^DISPLAY_AUTO_DETECT=.*/DISPLAY_AUTO_DETECT=0/' /boot/crankshaft/crankshaft_env.sh
-		        cs_bootro
-			sudo /sbin/shutdown -r now
-		    fi
-
-		    # No known display detected - disable auto detect during boot
-		    cs_bootrw
-		    sudo sed -i 's/^DISPLAY_AUTO_DETECT=.*/DISPLAY_AUTO_DETECT=0/' /boot/crankshaft/crankshaft_env.sh
-	    	    cs_bootro
-		fi
-		;;
 	    forcelcd)
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
 		sudo sed -i 's/^# Default Display.*//' /boot/config.txt
@@ -1552,7 +1451,7 @@ if [ ! -z $1 ]; then
 		sudo sh -c "echo 'display_default_lcd=0' >> /boot/config.txt"
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display on|off|autodetect|forcelcd|forcehdmi${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display on|off|forcelcd|forcehdmi${RESET}"
 		;;
 	esac
     fi
@@ -2704,7 +2603,7 @@ if [ ! -z $1 ]; then
 		cs_systemro
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore|status|unpair|builtin|external|disable${RESET}"
 		;;
 	esac
     fi
@@ -3351,8 +3250,6 @@ else
     echo "      |- on                   - Enable Display"
     echo "      |- off                  - Disable Display"
     echo "      |- toggle               - Toggle between display on/off"
-    echo "      |- autodetect           - Try to detect display by usb touch controller and setup"
-    echo "                                (this feature is not ready for use - only prepared for further versions!)"
     echo "      |- forcelcd             - Force Using Original RPi Display Via DSI"
     echo "      |- forcehdmi            - Force Using HDMI Connected Display"
     echo ""
