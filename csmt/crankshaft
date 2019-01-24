@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.3
+version=2.2.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -382,6 +382,16 @@ function cs_clear_bluetooth() {
 	echo -e 'disconnect '$line'\nquit' | bluetoothctl > /dev/null 2>&1
 	echo -e 'remove '$line'\nquit' | bluetoothctl > /dev/null 2>&1
     done
+}
+
+function cs_bluetooth_pairable() {
+    sudo bt-adapter --set Powered 1
+    sudo bt-adapter --set Discoverable 1
+    sudo bt-adapter --set DiscoverableTimeout 0
+    sudo bt-adapter --set Pairable 1
+    sudo bt-adapter --set PairableTimeout 120
+    touch /tmp/bluetooth_pairable >/dev/null 2>&1
+    sleep 120 && sudo rm /tmp/bluetooth_pairable &
 }
 
 # echo if user logged in
@@ -2550,6 +2560,10 @@ if [ ! -z $1 ]; then
 		cs_bootrw
 		sudo rm -f /boot/crankshaft/bluetooth-pairings.tar.gz
 		cs_bootro
+		cs_bluetooth_pairable
+		;;
+	    pairable)
+		cs_bluetooth_pairable
 		;;
 	    builtin)
 		cs_bootrw
@@ -2603,7 +2617,7 @@ if [ ! -z $1 ]; then
 		cs_systemro
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore|status|unpair|builtin|external|disable${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft bluetooth save|restore|status|unpair|pairable|builtin|external|disable${RESET}"
 		;;
 	esac
     fi
@@ -3403,6 +3417,7 @@ else
     echo "        |- restore            - Restore paired bluetooth devices"
     echo "        |- status             - Show status of paired devices"
     echo "        |- unpair             - Unpair all paired devices"
+    echo "        |- pairable           - Set controller to pairable state for 120 seconds"
     echo "        |- builtin            - Enable builtin bluetooth support"
     echo "        |- external           - Disable builtin bluetooth support to use external adapter"
     echo "        |- disable            - Disable builtin bluetooth support to use external adapter"
