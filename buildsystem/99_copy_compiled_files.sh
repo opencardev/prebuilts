@@ -31,6 +31,11 @@ if [ -f ./gpio2kbd/gpio2kbd ]; then
     cp ./gpio2kbd/gpio2kbd ./BINARY_FILES/
 fi
 
+# Copy cam_overlay.bin
+if [ -f ./cam_overlay/cam_overlay.bin ]; then
+    cp ./cam_overlay/cam_overlay.bin ./BINARY_FILES/
+fi
+
 # Create compressed qt5
 QTVERSON=`cat /usr/local/qt5/lib/pkgconfig/Qt5Core.pc | grep Version: | cut -d: -f2 | sed 's/ //g' | sed 's/\.//g'`
 

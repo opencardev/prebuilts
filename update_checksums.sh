@@ -23,3 +23,7 @@ cd ..
 cd usbreset
 md5sum $(basename usbreset) > usbreset.md5
 cd ..
+
+cd cam_overlay
+md5sum $(basename cam_overlay.bin) > cam_overlay.bin.md5
+cd ..

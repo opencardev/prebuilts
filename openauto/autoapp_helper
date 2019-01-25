@@ -333,6 +333,9 @@ if [ "${array[0]}" == "setparams" ]; then
         sudo sed -i 's/^RPICAM_LOOPTIME=.*/RPICAM_LOOPTIME='$(echo ${array[58]})'/' /boot/crankshaft/crankshaft_env.sh
         sudo sed -i 's/^RPICAM_LOOPCOUNT=.*/RPICAM_LOOPCOUNT='$(echo ${array[59]})'/' /boot/crankshaft/crankshaft_env.sh
         sudo sed -i 's/^RPICAM_AUTORECORDING=.*/RPICAM_AUTORECORDING='$(echo ${array[60]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^USBCAM_HFLIP=.*/USBCAM_HFLIP='$(echo ${array[61]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^USBCAM_VFLIP=.*/USBCAM_VFLIP='$(echo ${array[62]})'/' /boot/crankshaft/crankshaft_env.sh
+        sudo sed -i 's/^USBCAM_ROTATION=.*/USBCAM_ROTATION='$(echo ${array[63]})'/' /boot/crankshaft/crankshaft_env.sh
 
         if [ -f /tmp/zoomlevel ]; then
             sudo sed -i 's/^RPICAM_ZOOM=.*/RPICAM_ZOOM='$(cat /tmp/zoomlevel)'/' /boot/crankshaft/crankshaft_env.sh
@@ -392,12 +395,12 @@ if [ "${array[0]}" == "setparams" ]; then
         echo "Ignoring change - same value" >> /tmp/autoapp_helper_command
     fi
 
-    # sdcard overclock
+    # use usb cam
     echo "${array[30]}" >> /tmp/autoapp_helper_command
     if [ "${array[30]}" == "enabled" ]; then
-        crankshaft sdcard ocenable
+        sudo sed -i 's/^USBCAM_USE=.*/USBCAM_USE=1/' /boot/crankshaft/crankshaft_env.sh
     else
-        crankshaft sdcard ocdisable
+        sudo sed -i 's/^USBCAM_USE=.*/USBCAM_USE=0/' /boot/crankshaft/crankshaft_env.sh
     fi
 
     # splash
