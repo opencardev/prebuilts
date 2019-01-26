@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.4
+version=2.2.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -409,10 +409,10 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'version')
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'rearcam' 'version')
     if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|rearcam|version${RESET}"
 	exit 0
     fi
 
@@ -3245,6 +3245,61 @@ if [ ! -z $1 ]; then
 		;;
 	esac
     fi
+
+    # rearcam
+    if [ $1 == "rearcam" ]; then
+	case $2 in
+	    show)
+		cs_echo "Show rearcam..."
+                if [ ! -f /tmp/rearcam_enabled ]; then
+                    touch /tmp/rearcam_enabled
+                    touch /tmp/blackscreen
+                    PARAMS=""
+                    if [ $USBCAM_USE -eq 1 ]; then
+                        if [ "$USBCAM_CUSTOM_PARAMS" != "" ]; then
+                            cd /opt/crankshaft/cam_overlay
+                            log_echo "cam_overlay.bin - Custom param set:"
+                            log_echo "cam_overlay.bin $USBCAM_CUSTOM_PARAMS &"
+                            ./cam_overlay.bin -s $USBCAM_CUSTOM_PARAMS &
+                        else
+                            if [ $USBCAM_HFLIP -eq 1 ]; then
+
+                                PARAMS="$PARAMS -h"
+                            fi
+                            if [ $USBCAM_VFLIP -eq 1 ]; then
+                                PARAMS="$PARAMS -v"
+                            fi
+                            if [ $USBCAM_ROTATION -eq 1 ]; then
+                                PARAMS="$PARAMS -R"
+                            fi
+                            cd /opt/crankshaft/cam_overlay
+                            log_echo "cam_overlay.bin $PARAMS &"
+                            ./cam_overlay.bin -s $PARAMS &
+                        fi
+                    else
+                        /opt/crankshaft/cameracontrol.py Rearcam &
+                    fi
+                fi
+		;;
+	    hide)
+		cs_echo "Hide rearcam..."
+                if [ -f /tmp/rearcam_enabled ]; then
+                    if [ $USBCAM_USE -eq 1 ]; then
+                        sudo killall cam_overlay.bin >/dev/null 2>&1
+                    else
+                        /opt/crankshaft/cameracontrol.py DashcamMode &
+                    fi
+                    rm /tmp/rearcam_enabled >/dev/null 2>&1
+                    sleep 0.5
+                    rm /tmp/blackscreen >/dev/null 2>&1
+                fi
+		;;
+	    *)
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft rearcam show|hide${RESET}"
+		;;
+	esac
+    fi
+
     #version
     if [ $1 == "version" ]; then
 	echo "Crankshaft Management Tool v$version"
@@ -3467,6 +3522,10 @@ else
     echo "samba                         Control Samba Server"
     echo "    |- start                  - Start Samba Server (boot will switch to rw if not in dev mode)"
     echo "    |- stop                   - Stop Samba Server"
+    echo ""
+    echo "rearcam                       Control rearcam"
+    echo "    |- show                   - Show rearcam"
+    echo "    |- hide                   - Hide rearcam"
     echo ""
     echo "version                       Show Vesion Of CSMT"
 fi
