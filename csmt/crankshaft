@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.6
+version=2.2.8
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -1824,6 +1824,7 @@ if [ ! -z $1 ]; then
 		echo "Current branch: $(cat /etc/crankshaft.branch)"
 		cs_systemrw
 		sudo sh -c 'echo "crankshaft-ng" > /etc/crankshaft.branch'
+		sudo sh -c 'echo "0000-00-00" > /etc/crankshaft.date'
 		cs_systemro
 		echo "New branch: $(cat /etc/crankshaft.branch)"
 		;;
@@ -1831,6 +1832,7 @@ if [ ! -z $1 ]; then
 		echo "Current branch: $(cat /etc/crankshaft.branch)"
 		cs_systemrw
 		sudo sh -c 'echo "csng-dev" > /etc/crankshaft.branch'
+		sudo sh -c 'echo "0000-00-00" > /etc/crankshaft.date'
 		cs_systemro
 		echo "New branch: $(cat /etc/crankshaft.branch)"
 		;;
