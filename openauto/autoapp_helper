@@ -624,21 +624,6 @@ if [ "$1" == "getbrightnessvalues" ]; then
     echo "$LUX_LEVEL_1#$DISP_BRIGHTNESS_1#$LUX_LEVEL_2#$DISP_BRIGHTNESS_2#$LUX_LEVEL_3#$DISP_BRIGHTNESS_3#$LUX_LEVEL_4#$DISP_BRIGHTNESS_4#$LUX_LEVEL_5#$DISP_BRIGHTNESS_5#$TSL2561_CHECK_INTERVAL#$TSL2561_DAYNIGHT_ON_STEP#" > /tmp/tsl2561_values
 fi
 
-if [ "$1" == "startcustombrightness" ]; then
-    sudo systemctl start custombrightness
-fi
-
-if [ "$1" == "enablepairing" ]; then
-    touch /tmp/bluetooth_pairable
-    touch /tmp/enable_pairing
-    sudo bt-adapter --set Powered 1 > /dev/null 2>&1
-    sudo bt-adapter --set Pairable 1 > /dev/null 2>&1
-    sudo bt-adapter --set PairableTimeout 120 > /dev/null 2>&1
-    log_echo "Set bluetooth adapter pairable for 120 seconds"
-    sleep 120 && sudo rm -f /tmp/bluetooth_pairable &
-    sleep 2 && sudo rm -f /tmp/enable_pairing &
-fi
-
 if [ "$1" == "getvolume" ]; then
     # get soundcard volume
     pulsedeviceplay=$(cat /etc/pulse/client.conf | grep '^default-sink =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
@@ -701,12 +686,20 @@ if [ "$1" == "updaterecent" ] && [ -f /tmp/dnsmasq.leases ]; then
 fi
 
 if [ "$1" == "cleansymlinks" ]; then
+    log_echo "LINK: Check for dead links caused by removed device"
     find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
 fi
 
 if [ "$1" == "addsymlinks" ] && [ "$2" != "" ]; then
-    ln -s /media/USBDRIVES/$2/Music/*/ /media/MYMEDIA/
-    find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
+    log_echo "LINK: Check for media folder on $2"
+    # grab music folder name ignoring case sensitive
+    MEDIAFOLDER=$(basename $(ls /media/USBDRIVES/$2 | grep -i '^music$'))
+    if [ "$MEDIAFOLDER" != "" ]; then
+        log_echo "LINK: Found media folder: $MEDIAFOLDER"
+        ln -s /media/USBDRIVES/$2/$MEDIAFOLDER/*/ /media/MYMEDIA/
+        find /media/MYMEDIA/. -type l -exec sh -c 'readlink -f "{}" 1>/dev/null || sudo rm "{}"' -- "{}" \;
+        log_echo "LINK: media folder linked"
+    fi
 fi
 
 if [ "$1" == "usbreset" ] && [ -f /tmp/android_device ]; then

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.8
+version=2.2.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -390,8 +390,10 @@ function cs_bluetooth_pairable() {
     sudo bt-adapter --set DiscoverableTimeout 0
     sudo bt-adapter --set Pairable 1
     sudo bt-adapter --set PairableTimeout 120
+    touch /tmp/enable_pairing >/dev/null 2>&1
     touch /tmp/bluetooth_pairable >/dev/null 2>&1
     sleep 120 && sudo rm /tmp/bluetooth_pairable &
+    sleep 2 && sudo rm /tmp/enable_pairing &
 }
 
 # echo if user logged in
