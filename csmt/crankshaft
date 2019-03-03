@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.2.9
+version=2.3.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2756,9 +2756,9 @@ if [ ! -z $1 ]; then
 		    STATETEXT="${BLUE}${BOLD}disabled${RESET}"
 		else
 		    if [ $ANDROID -eq 1 ]; then
-			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
-		    else
 			STATETEXT="${RED}${BOLD}Triggered${RESET}"
+		    else
+			STATETEXT="${GREEN}${BOLD}Untriggered${RESET}"
 		    fi
 		fi
 		cs_echo "GPIO: $SHOW_ANDROID - State: $STATETEXT"
