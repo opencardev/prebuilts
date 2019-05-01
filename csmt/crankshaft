@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.0
+version=2.3.1
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -411,10 +411,10 @@ function cs_echo() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'rearcam' 'version')
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'rearcam' 'systemcheck' 'version')
     if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|rearcam|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|rearcam|systemcheck|version${RESET}"
 	exit 0
     fi
 
@@ -2324,6 +2324,28 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    #systemcheck
+    if [ $1 == "systemcheck" ]; then
+	cs_echo "Checking systemd automount flag:"
+	cs_echo ""
+	CHECK=`cat /lib/systemd/system/systemd-udevd.service | grep ^MountFlags | cut -d= -f2`
+	if  [ "$CHECK" != "shared" ]; then
+	    cs_echo "${RED}${BOLD}CSMT has detected a wrong setup in systemd for usb drives!${RESET}"
+	    cs_echo "${RED}${BOLD}Applying fix for it...${RESET}"
+	    cs_systemrw
+	    # Make udev mountpoints shared
+	    sudo sed -i 's/^MountFlags=.*/MountFlags=shared/' /lib/systemd/system/systemd-udevd.service
+	    cs_systemro
+	    cs_echo "${BOLD}${CYAN}Reboot your system to activate the fix!${RESET}"
+	    cs_echo ""
+	else
+	cs_echo "Automount flag: ${BOLD}${GREEN}OK${RESET}"
+	cs_echo ""
+	fi
+	cs_echo ""
+	cs_echo "Done."
+    fi
+
     #usb
     if [ $1 == "usb" ]; then
 	case $2 in
@@ -2334,57 +2356,69 @@ if [ ! -z $1 ]; then
 		for _device in /sys/block/*/device; do
 		    if echo $(readlink -f "$_device")|egrep -q "usb"; then
 		        _disk=$(echo "$_device" | cut -f4 -d/)
-			LABEL=$(sudo blkid /dev/${_disk}1 | sed 's/.*LABEL="//' | cut -d'"' -f1)
-			FSTYPE=$(sudo blkid /dev/${_disk}1 | sed 's/.*TYPE="//' | cut -d'"' -f1)
-			cs_echo "Detected Drive: ${CYAN}${BOLD}${_disk}${RESET}"
-			cs_echo "Label 1st Part: ${GREEN}${BOLD}${LABEL}${RESET}"
-			cs_echo "PartFilesystem: ${YELLOW}${BOLD}${FSTYPE}${RESET}"
-			cs_echo ""
-			cs_echo "Mount: ${MAGENTA}${BOLD}crankshaft usb mount ${RESET}${CYAN}${BOLD}${_disk}${RESET}"
-			cs_echo ""
-			cs_echo "${RED}${BOLD}Note${RESET}: Only 1st partition will be used for mount!"
+			COUNT=1
+			while [ $COUNT -lt 4 ]; do
+			    LABEL=$(sudo blkid /dev/${_disk}$COUNT | sed 's/.*LABEL="//' | cut -d'"' -f1)
+			    FSTYPE=$(sudo blkid /dev/${_disk}$COUNT | sed 's/.*TYPE="//' | cut -d'"' -f1)
+			    if [ "$LABEL" != "" ] || [ "$FSTYPE" != "" ]; then
+				cs_echo "Detected Drive: ${CYAN}${BOLD}${_disk}$COUNT${RESET}"
+				cs_echo "Label 1st Part: ${GREEN}${BOLD}${LABEL}${RESET}"
+				cs_echo "PartFilesystem: ${YELLOW}${BOLD}${FSTYPE}${RESET}"
+				if [ "${LABEL}" == "CSSTORAGE" ]; then
+				    cs_echo "${RED}${BOLD}This drive is controlled by system and can't be manually mounted/unmounted!${RESET}"
+				else
+				    cs_echo "Mount Command : ${MAGENTA}${BOLD}crankshaft usb mount ${RESET}${CYAN}${BOLD}${_disk}$COUNT${RESET}"
+				fi
+				cs_echo ""
+			    fi
+			    let COUNT=COUNT+1
+			done
+			cs_echo "--------------------------------------------------------------------------"
 		    fi
 		done
 		;;
 	    mount)
 		if [ ! -z $3 ]; then
 		    DEVICE=$3
-		    DEVICE="${DEVICE}1"
                     if sudo mount | grep CSSTORAGE | grep /dev/$DEVICE > /dev/null; then
 		        cs_echo "${YELLOW}${BOLD}USB device is CSSTORAGE and handled by system - exit...${RESET}"
 		        cs_echo ""
 		        cs_echo "Done."
 			exit 0
                     else
-		        if [ ! -d /media/USB ]; then
+		        if [ ! -d /media/USBDRIVES/$DEVICE ]; then
 			    cs_systemrw
-			    sudo mkdir /media/USB
+			    sudo mkdir /media/USBDRIVES/$DEVICE
 			    cs_systemro
 		        fi
-		        if sudo mount | grep /media/USB > /dev/null; then
+		        if sudo mount | grep /media/USBDRIVES/$DEVICE > /dev/null; then
 			    cs_echo "${YELLOW}${BOLD}Destination folder is still mounted - unmount it before new mount!${RESET}"
 		    	    cs_echo ""
 		    	    cs_echo "Done."
 			    exit 0
 		        fi
-		        sudo mount -o sync /dev/$DEVICE /media/USB
+		        sudo mount -o sync /dev/$DEVICE /media/USBDRIVES/$DEVICE
 		        if [ $? -ne 0 ]; then
 			    cs_echo "${RED}${BOLD}Mount was not possible - abbort...${RESET}"
 		        else
-			    cs_echo "${GREEN}${BOLD}Mount successfull${RESET} - Device /dev/$DEVICE ($(sudo blkid /dev/$DEVICE | sed 's/.*LABEL="//' | cut -d'"' -f1))  mountet to /media/USB"
+			    cs_echo "${GREEN}${BOLD}Mount successfull${RESET} - Device /dev/$DEVICE ($(sudo blkid /dev/$DEVICE | sed 's/.*LABEL="//' | cut -d'"' -f1))  mountet to /media/USBDRIVES/$DEVICE"
 		        fi
                     fi
 		fi
 		;;
 	    umount)
-		sudo umount /media/USB
-		if [ $? -ne 0 ]; then
-		    cs_echo "${RED}${BOLD}Unmount was not possible - abbort...${RESET}"
-		    cs_echo ""
-		else
-		    cs_echo "${GREEN}${BOLD}Unmount successfull - You can now remove device.${RESET}"
-		    cs_echo ""
-		    cs_echo "Done."
+		if [ ! -z $3 ]; then
+		    DEVICE=$3
+		    sudo umount /media/USBDRIVES/$DEVICE
+		    if [ $? -ne 0 ]; then
+			cs_echo "${RED}${BOLD}Unmount was not possible - abbort...${RESET}"
+			cs_echo ""
+		    else
+			cs_echo "${GREEN}${BOLD}Unmount successfull - You can now remove device.${RESET}"
+			sudo rmdir /media/USBDRIVES/$DEVICE
+			cs_echo ""
+			cs_echo "Done."
+		    fi
 		fi
 		;;
 	    identify)
@@ -3453,8 +3487,8 @@ else
     echo ""
     echo "usb                           Handle USB drives"
     echo "  |- list                     - List available usb mass storage drives"
-    echo "  |- mount x                  - Mount 1st partition from given device (sda,sdb,sdc,...)"
-    echo "  |- umount                   - Unmount mounted usb drive"
+    echo "  |- mount x                  - Mount partition from given usb device (sda(x),sdb(x),sdc(x),...)"
+    echo "  |- umount x                 - Unmount mounted usb partition (sda(x),sdb(x),sdc(x),...)"
     echo "  |- identify                 - Give us id's, manufacturer & model of connected usb devices"
     echo ""
     echo "gpio                          GPIO relted stuff"
@@ -3530,6 +3564,8 @@ else
     echo "rearcam                       Control rearcam"
     echo "    |- show                   - Show rearcam"
     echo "    |- hide                   - Hide rearcam"
+    echo ""
+    echo "systemcheck                   Check general system setup params (currently work in progress)"
     echo ""
     echo "version                       Show Vesion Of CSMT"
 fi
