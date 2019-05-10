@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.1
+version=2.3.2
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2339,11 +2339,29 @@ if [ ! -z $1 ]; then
 	    cs_echo "${BOLD}${CYAN}Reboot your system to activate the fix!${RESET}"
 	    cs_echo ""
 	else
-	cs_echo "Automount flag: ${BOLD}${GREEN}OK${RESET}"
+	    cs_echo "Automount flag: ${BOLD}${GREEN}OK${RESET}"
+	    cs_echo ""
+	fi
+	cs_echo "Checking dkms exfat module:"
 	cs_echo ""
+	if [ "$(dkms status | grep exfat | cut -d: -f2 | sed 's/ //g')" == "installed" ]; then
+	    cs_echo "Exfat module: ${BOLD}${GREEN}OK${RESET}"
+	else
+	    cs_echo "${RED}${BOLD}CSMT has detected mising exfat module!${RESET}"
+	    cs_echo "${RED}${BOLD}Trying to rebuild it...${RESET}"
+	    cs_systemrw
+	    sudo dkms autoinstall
+	    cs_systemro
+	    if [ "$(dkms status | grep exfat | cut -d: -f2 | sed 's/ //g')" == "installed" ]; then
+		cs_echo "${BOLD}${CYAN}Reboot your system to activate the fix!${RESET}"
+		cs_echo ""
+	    else
+		cs_echo "${BOLD}${CYAN}Module build failed.${RESET}"
+		cs_echo ""
+	    fi
 	fi
 	cs_echo ""
-	cs_echo "Done."
+	cs_echo "All checks done."
     fi
 
     #usb
@@ -3571,3 +3589,4 @@ else
 fi
 
 exit 0
+
