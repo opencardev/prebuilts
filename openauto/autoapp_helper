@@ -266,6 +266,10 @@ if [ "${array[0]}" == "setparams" ]; then
         else
             /usr/local/bin/crankshaft rtc ${array[17]} ${array[18]}
         fi
+    else
+        if [ "${array[18]}" != "" ]; then
+            /usr/local/bin/crankshaft timezone ${array[18]}
+        fi
     fi
 
     # dac setup
