@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.3
+version=2.3.4
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -2206,7 +2206,12 @@ if [ ! -z $1 ]; then
 		    # Check latest image
 		    sudo rm /tmp/latestimage > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
-			DEV_LATEST_FILE=`curl 'ftp://cloud.hawknetwork.de/FTP/' 2>/dev/null | grep zip | tail -1 | rev | cut -d" " -f1 | rev`
+			DEV_LATEST_FILE=`curl 'ftp://cloud.hawknetwork.de/FTP/' 2>/dev/null | grep crankshaft | grep zip | tail -1 | rev | cut -d" " -f1 | rev`
+			if [ "$DEV_LATEST_FILE" == "" ]; then
+			    cs_echo "No file on ftp!"
+			    cs_echo ""
+			    DEV_LATEST_FILE="$(cat /etc/crankshaft.date)-crankshaft-ng-$(cat /etc/crankshaft.build).zip"
+			fi
 			echo "ftp://cloud.hawknetwork.de/FTP/$DEV_LATEST_FILE" > /tmp/latestimage
 		    else
 			sudo wget -q --no-check-certificate -O /tmp/latestimage https://raw.githubusercontent.com/opencardev/prebuilts/master/latestimage/latest
