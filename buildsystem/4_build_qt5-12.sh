@@ -4,7 +4,7 @@
 HOME="`cd $0 >/dev/null 2>&1; pwd`" >/dev/null 2>&1
 
 # Clean build folder
-#sudo rm -rf $HOME/qt512_build
+sudo rm -rf $HOME/qt512_build
 
 # Create build folders
 mkdir -p $HOME/qt512/src
