@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.4
+version=2.3.5
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -333,8 +333,10 @@ function cs_rtc() {
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i 's/^# RTC Setup.*//' /boot/config.txt
     sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
+    sudo sed -i '/rtc/d' /etc/modules
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /etc/modules
+    sudo sh -c "echo 'rtc-'$1 >> /etc/modules"
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# RTC Setup' >> /boot/config.txt"
     sudo sh -c "echo 'dtoverlay=i2c-rtc,'$1 >> /boot/config.txt"
@@ -1633,7 +1635,8 @@ if [ ! -z $1 ]; then
 		cs_systemrw
 		#delete clock
 		sudo sed -i 's/^# RTC Setup.*//' /boot/config.txt
-    		sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
+		sudo sed -i '/dtoverlay=i2c-rtc/d' /boot/config.txt
+		sudo sed -i '/rtc/d' /etc/modules
 		sudo sed -i 's/^RTC_DAYNIGHT=.*/RTC_DAYNIGHT=0/' /boot/crankshaft/crankshaft_env.sh
 		sudo sed -i '/./,/^$/!d' /boot/config.txt
 		sudo sed -i '/./,/^$/!d' /boot/crankshaft/crankshaft_env.sh
