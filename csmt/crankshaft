@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.6
+version=2.3.7
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -3349,34 +3349,21 @@ if [ ! -z $1 ]; then
 			cd "$folder"
 			file=`ls | grep .mp3 | head -n1`
 			if [ -f "$file" ]; then
-			    echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-			    echo "[${CYAN}${BOLD} INFO ${RESET}] Checking: $file"
-			    echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-			    echo ""
+			    cs_echo "[${CYAN}${BOLD} INFO ${RESET}] Checking: $file"
 			    sudo eyeD3 "$file" --write-images /media/MYMEDIA/.tmp >/dev/null 2>&1
 			    cover=`ls /media/MYMEDIA/.tmp/ | grep -e .jpg -e .png | tail -n1`
 			    if [[ $cover == *"jpg"* ]]; then
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Match: JPG-Image found!"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Source: /media/MYMEDIA/.tmp/$(basename $cover)"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Destination: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").jpg"
+				cs_echo "[${GREEN}${BOLD}  OK  ${RESET}] Match: JPG-Image found!"
+				cs_echo "[${GREEN}${BOLD}  OK  ${RESET}] Destination: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").jpg"
 				echo "JPG: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").jpg" >> /tmp/coverextractor.log
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-				echo ""
 				sudo cp -f "/media/MYMEDIA/.tmp/$(basename $cover)" "/media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").jpg"
 			    elif [[ $cover == *"png"* ]]; then
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Match: PNG-Image found!"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Source: /media/MYMEDIA/.tmp/$(basename $cover)"
-				echo "[${GREEN}${BOLD}  OK  ${RESET}] Destination: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").png"
+				cs_echo "[${GREEN}${BOLD}  OK  ${RESET}] Match: PNG-Image found!"
+				cs_echo "[${GREEN}${BOLD}  OK  ${RESET}] Destination: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").png"
 				echo "PNG: /media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").png" >> /tmp/coverextractor.log
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-				echo ""
 				sudo cp -f "/media/MYMEDIA/.tmp/$(basename $cover)" "/media/USBDRIVES/CSSTORAGE/COVERCACHE/$(basename "$folder").png"
 			    else
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
-				echo "[${RED}${BOLD} INFO ${RESET}] No image found."
-				echo "[${CYAN}${BOLD} INFO ${RESET}] ******************************************************************************"
+				cs_echo "[${RED}${BOLD} INFO ${RESET}] No image found."
 				echo "No image in media ($folder/$file)" >> /tmp/coverextractor.log
 			    fi
 			    sudo rm -rf /media/MYMEDIA/.tmp/*
@@ -3689,3 +3676,4 @@ else
 fi
 
 exit 0
+
