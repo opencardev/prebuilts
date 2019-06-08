@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.9
+version=2.4.0
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -3343,14 +3343,17 @@ if [ ! -z $1 ]; then
     if [ $1 == "resizebg" ]; then
 	width=`cat /sys/class/graphics/fb0/virtual_size | cut -d, -f1`
 	heigth=`cat /sys/class/graphics/fb0/virtual_size | cut -d, -f2`
-	echo "Screen width: $width"
-	echo "Screen heigth: $heigth"
+	cs_echo "Screen width: $width"
+	cs_echo "Screen heigth: $heigth"
 	cs_bootrw
+	cs_echo "Resizing background images..."
 	sudo convert /boot/crankshaft/wallpaper-night.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-night.png
 	sudo convert /boot/crankshaft/wallpaper.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper.png
 	sudo convert /boot/crankshaft/wallpaper-classic-night.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-classic-night.png
 	sudo convert /boot/crankshaft/wallpaper-classic.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-classic.png
 	sudo convert /boot/crankshaft/wallpaper-eq.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-eq.png
+	sudo convert /boot/crankshaft/wallpaper-christmas.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-christmas.png
+	sudo convert /boot/crankshaft/wallpaper-firework.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-firework.png
 	cs_bootro
     fi
 
