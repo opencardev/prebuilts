@@ -1,6 +1,6 @@
 #!/bin/bash
 
-version=2.3.8
+version=2.3.9
 
 source /opt/crankshaft/crankshaft_default_env.sh
 source /opt/crankshaft/crankshaft_system_env.sh
@@ -429,10 +429,10 @@ function cs_noecho() {
 # Abort if file does not exist
 
 if [ ! -z $1 ]; then
-    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'timezone' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'rearcam' 'cover' 'systemcheck' 'version')
+    declare -a array=('display' 'brightness' 'filesystem' 'system' 'boot' 'timers' 'settings' 'services' 'branch' 'update' 'audio' 'rtc' 'timezone' 'state' 'reset' 'rpicam' 'resize' 'usb' 'gpio' 'hotspot' 'syslog' 'bluetooth' 'buttons' 'sdcard' 'temp' 'lightsensor' 'screenshot' 'splash' 'mode' 'initramfs' 'oalog' 'debuglog' 'i2ccheck' 'network' 'samba' 'rearcam' 'resizebg' 'cover' 'systemcheck' 'version')
     if [[ ! "${array[@]}" =~ "$1" ]]; then
 	cs_echo "Unknown command:"
-	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|timezone|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|rearcam|cover|systemcheck|version${RESET}"
+	cs_echo "${YELLOW}${BOLD}Syntax: crankshaft display|brightness|filesystem|system|boot|timers|settings|services|update|audio|rtc|timezone|state|reset|rpicam|resize|usb|gpio|hotspot|syslog|bluetooth|buttons|sdcard|temp|lightsensor|screenshot|splash|mode|initramfs|oalog|debuglog|i2ccheck|network|samba|rearcam|resizebg|cover|systemcheck|version${RESET}"
 	exit 0
     fi
 
@@ -3339,6 +3339,21 @@ if [ ! -z $1 ]; then
 	esac
     fi
 
+    # background resize
+    if [ $1 == "resizebg" ]; then
+	width=`cat /sys/class/graphics/fb0/virtual_size | cut -d, -f1`
+	heigth=`cat /sys/class/graphics/fb0/virtual_size | cut -d, -f2`
+	echo "Screen width: $width"
+	echo "Screen heigth: $heigth"
+	boot_rw
+	sudo convert /boot/crankshaft/wallpaper-night.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-night.png
+	sudo convert /boot/crankshaft/wallpaper.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper.png
+	sudo convert /boot/crankshaft/wallpaper-classic-night.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-classic-night.png
+	sudo convert /boot/crankshaft/wallpaper-classic.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-classic.png
+	sudo convert /boot/crankshaft/wallpaper-eq.png -resize ${width}x${heigth}! /boot/crankshaft/wallpaper-eq.png
+	boot_ro
+    fi
+
     # cover
     if [ $1 == "cover" ]; then
 	case $2 in
@@ -3674,6 +3689,8 @@ else
     echo "    |- show                   - Show rearcam"
     echo "    |- hide                   - Hide rearcam"
     echo ""
+    echo "resizebg                      Convert background images to screen matching size"
+    echo ""
     echo "cover                         Cover management"
     echo "    |- extract                - Extract album covers from linked media to cache folder"
     echo ""
@@ -3683,4 +3700,3 @@ else
 fi
 
 exit 0
-
