@@ -1,4 +1,9 @@
 #!/bin/bash
+# Install Pre-reqs
+sudo apt-get -y install cmake build-essential git
+sudo apt-get -y install libboost-all-dev libusb-1.0.0-dev libssl-dev cmake libprotobuf-dev protobuf-c-compiler protobuf-compiler pulseaudio librtaudio-dev libgps-dev 
+sudo apt-get install -y libblkid-dev libtag1-dev libgles2-mesa-dev
+#libqt5multimedia5 libqt5multimedia5-plugins libqt5multimediawidgets5 qtmultimedia5-dev libqt5bluetooth5 libqt5bluetooth5-bin qtconnectivity5-dev
 
 # Set current folder as home
 HOME="`cd $0 >/dev/null 2>&1; pwd`" >/dev/null 2>&1
