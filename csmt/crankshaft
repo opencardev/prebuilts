@@ -364,14 +364,14 @@ function cs_timezone() {
 function cs_check_i2c() {
     cs_systemrw
     sudo sed -i '/./,/^$/!d' /boot/config.txt
-    sudo sed -i '/dtoverlay=i2c_arm=/d' /boot/config.txt
+    sudo sed -i '/dtparam=i2c_arm=/d' /boot/config.txt
     sudo sed -i 's/^# I2C Bus.*//' /boot/config.txt
     sudo sed -i '/i2c*/d' /etc/modules
     sudo sed -i '/./,/^$/!d' /boot/config.txt
     sudo sed -i '/./,/^$/!d' /etc/modules
     sudo sh -c "echo '' >> /boot/config.txt"
     sudo sh -c "echo '# I2C Bus' >> /boot/config.txt"
-    sudo sh -c "echo 'dtoverlay=i2c_arm=on' >> /boot/config.txt"
+    sudo sh -c "echo 'dtparam=i2c_arm=on' >> /boot/config.txt"
     sudo sh -c "echo 'i2c-dev' >> /etc/modules"
     cs_systemro
 }
