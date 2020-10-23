@@ -17,7 +17,7 @@ sudo apt-get -y -q -f install --no-install-recommends build-essential libfontcon
 sudo apt-get -y -q install --no-install-recommends rpi-update
 
 # Apt packages to build openauto
-sudo apt-get install -y -q --no-install-recommends pulseaudio librtaudio-dev librtaudio-dev libtag1-dev libblkid-dev
+sudo apt-get install -y -q --no-install-recommends pulseaudio librtaudio-dev libtag1-dev libblkid-dev
 
 #  Apt packages to build cam_overlay
 sudo apt-get install -y -q --no-install-recommends libv4l-dev libpng-dev
