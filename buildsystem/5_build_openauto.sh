@@ -1,4 +1,5 @@
 #!/bin/bash
+CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
 # Install Pre-reqs
 sudo apt-get -y install cmake build-essential git
 sudo apt-get -y install libboost-all-dev libusb-1.0.0-dev libssl-dev cmake libprotobuf-dev protobuf-c-compiler protobuf-compiler pulseaudio librtaudio-dev libgps-dev 
@@ -13,7 +14,7 @@ cd $HOME
 
 # clone git repo
 if [ ! -d openauto ]; then
-    git clone -b crankshaft-ng https://github.com/opencardev/openauto.git
+    git clone -b alpha7 https://github.com/opencardev/openauto.git
 else
     cd openauto
     git reset --hard
@@ -36,6 +37,6 @@ ln -s /opt/vc/lib/libbrcmWFC.so /usr/lib/arm-linux-gnueabihf/libWFC.so
 # Create inside build folder
 cd $HOME/openauto_build
 cmake -DCMAKE_BUILD_TYPE=Release -DRPI3_BUILD=TRUE -DAASDK_INCLUDE_DIRS="$HOME/aasdk/include" -DAASDK_LIBRARIES="$HOME/aasdk/lib/libaasdk.so" -DAASDK_PROTO_INCLUDE_DIRS="$HOME/aasdk_build" -DAASDK_PROTO_LIBRARIES="$HOME/aasdk/lib/libaasdk_proto.so" ../openauto
-make
+make -j$CPU_CORES_COUNT 2>&1 | tee ../openauto-make$(date +"%Y-%m-%d_%H-%M").log
 
 cd $HOME
