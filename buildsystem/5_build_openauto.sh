@@ -14,7 +14,7 @@ cd $HOME
 
 # clone git repo
 if [ ! -d openauto ]; then
-    git clone -b alpha7 https://github.com/opencardev/openauto.git
+    git clone -b crankshaft-ng https://github.com/opencardev/openauto.git
 else
     cd openauto
     git reset --hard
