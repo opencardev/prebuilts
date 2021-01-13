@@ -53,7 +53,7 @@ PKG_CONFIG_LIBDIR=/usr/lib/arm-linux-gnueabihf/pkgconfig:/usr/share/pkgconfig \
 ${HOME}/qt${QT_FILE_VERSION}/src/qt-everywhere-src-${QT_FULL_VERSION}/configure -device ${DEVICE_OPT} \
 -device-option CROSS_COMPILE=arm-linux-gnueabihf- \
 -sysroot / \
--opengl es2 -eglfs -linuxfb ${KMS} \
+-opengl es2 -eglfs -linuxfb ${KMS} -xcb \
 -prefix /usr/local/qt5 \
 -opensource -confirm-license \
 -release -v \
