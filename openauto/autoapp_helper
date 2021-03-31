@@ -470,7 +470,11 @@ if [ "$1" == "getparams" ]; then
 
     # get capture volume
     pulsedevicecap=$(cat /etc/pulse/client.conf | grep '^default-source =' | cut -d= -f2 | sed 's/\t//g' | sed 's/^ //' | sed 's/ *$//')
-    levelcap=$(pactl list sources | grep -A8 $pulsedevicecap | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
+    if [ ! -z "$pulsedevicecap" ]; then
+        levelcap=0
+    else
+        levelcap=$(pactl list sources | grep -A8 $pulsedevicecap | grep Volume | cut -d/ -f2 | sed 's/%//' | sed 's/ //g')
+    fi
 
     # get disconnect timeout
     remainingdisconnect=$(systemctl list-timers disconnect.timer | grep left | cut -dl -f1  | awk {'print $5 $6'})

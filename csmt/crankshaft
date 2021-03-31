@@ -407,6 +407,13 @@ function cs_bluetooth_pairable() {
     sleep 2 && sudo rm /tmp/enable_pairing &
 }
 
+function cs_pi_power() {
+	for id in core sdram_c sdram_i sdram_p ; do \
+	echo -e "$id:\t$(vcgencmd measure_volts $id)" ; \
+	done
+	vcgencmd measure_clock arm; vcgencmd measure_clock core; vcgencmd measure_temp; vcgencmd get_throttled; vcgencmd measure_volts core; vcgencmd measure_volts 2711;
+}
+
 # echo if user logged in
 function cs_echo() {
     PPIDCHECK=$(ps $PPID | tail -1 | awk '{print $6}')
@@ -3155,6 +3162,9 @@ if [ ! -z $1 ]; then
 
 	# i2c devices
 	sudo i2cdetect -y 1 > /tmp/debuglogs/i2c-devices.log
+
+	# RPI Voltage
+	cs_pi_power> /tmp/debuglogs/pi-power.log
 
 	# Finish
 	sudo chmod 666 /tmp/debuglogs/*
