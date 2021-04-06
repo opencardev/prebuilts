@@ -5,7 +5,7 @@ QT_URL=https://download.qt.io/official_releases/qt/
 QT_VERSION=$(curl -s $QT_URL | grep -oE -m1 href=\"[0-9\.]+ |  tr -d 'href="')
 QT_VERSION='5.15'
 QT_FULL_VERSION=$(curl -s $QT_URL$QT_VERSION/ | grep -oE -m1 href=\"[0-9\.]+ |  tr -d 'href="')
-QT_FULL_VERSION='5.15.1'
+QT_FULL_VERSION='5.15.2'
 QT_FILENAME=qt-everywhere-src-${QT_FULL_VERSION}.tar.xz
 CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
 # Lookup for PI version
@@ -88,7 +88,7 @@ ${HOME}/qt${QT_FILE_VERSION}/src/qt-everywhere-src-${QT_FULL_VERSION}/configure 
 -qpa eglfs \
 -make libs -optimized-qmake  -skip qt3d -skip qtandroidextras -skip qtcanvas3d -skip qtcharts \
 -skip qtdatavis3d -skip qtdoc -skip qtgamepad -skip qtlocation -skip qtmacextras -skip qtpurchasing -skip qtscript -skip qtscxml \
--skip qtspeech -skip qtsvg -skip qttools -skip qttranslations -skip qtwebchannel -skip qtwebsockets \
+-skip qtspeech -skip qtsvg -skip qttools -skip qttranslations -skip qtwebchannel \
 -skip qtwebview -skip qtwinextras -skip qtxmlpatterns -no-feature-textodfwriter -no-feature-dom -no-feature-calendarwidget \
 -no-feature-printpreviewwidget -no-feature-keysequenceedit -no-feature-colordialog -no-feature-printpreviewdialog \
 -no-feature-wizard -no-feature-datawidgetmapper -no-feature-imageformat_ppm -no-feature-imageformat_xbm \
