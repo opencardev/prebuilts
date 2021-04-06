@@ -7,27 +7,36 @@ QT_VERSION='5.15'
 QT_FULL_VERSION=$(curl -s $QT_URL$QT_VERSION/ | grep -oE -m1 href=\"[0-9\.]+ |  tr -d 'href="')
 QT_FULL_VERSION='5.15.1'
 QT_FILENAME=qt-everywhere-src-${QT_FULL_VERSION}.tar.xz
-DEVICE_OPT=linux-rasp-pi3-g++
 CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
 # Lookup for PI version
-PIVERSION=`grep ^Model /proc/cpuinfo` 
+if [ $# -ne 1 ]; then
+   PIVERSION=`grep ^Model /proc/cpuinfo` 
+else
+   PIVERSION=$1
+fi
+DEVICE_OPT=linux-rasp-pi-g++
+KMS='-kms'
 if [[ ${PIVERSION} =~ 'Raspberry Pi 3' ]]; then
    DEVICE_OPT=linux-rasp-pi3-vc4-g++
    KMS='-kms'
-elif [[ ${PIVERSION} =~ 'Raspberry Pi 4' ]]; then
+fi
+if [[ ${PIVERSION} =~ 'Raspberry Pi 4' ]]; then
    DEVICE_OPT=linux-rasp-pi4-v3d-g++
    KMS='-kms'
-else
-   DEVIVE_OPT=linux-rasp-pi-g++
-   KMS='-kms'
 fi
+if [[ ${PIVERSION} =~ 'Raspberry Pi 2' ]]; then
+   DEVICE_OPT=linux-rasp-pi2-g++
+   KMS='=kms'
+fi
+
 # Set current folder as home
 HOME="`cd $0 >/dev/null 2>&1; pwd`" >/dev/null 2>&1
 
 QT_FILE_VERSION=$(echo $QT_VERSION | tr -d '.')
 
 echo "Building latest QT version: $QT_FULL_VERSION with EGL support"
-
+echo "For Pi: $PIVERSION"
+echo "QT Device: $DEVICE_OPT"
 # Clean build folder
 #sudo rm -rf ${HOME}/qt${QT_FILE_VERSION}_build
 
