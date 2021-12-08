@@ -5,7 +5,7 @@ QT_URL=https://download.qt.io/official_releases/qt/
 QT_VERSION=$(curl -s $QT_URL | grep -oE -m1 href=\"[0-9\.]+ |  tr -d 'href="')
 QT_VERSION='5.15'
 QT_FULL_VERSION=$(curl -s $QT_URL$QT_VERSION/ | grep -oE -m1 href=\"[0-9\.]+ |  tr -d 'href="')
-QT_FULL_VERSION='5.15.1'
+#QT_FULL_VERSION='5.15.1'
 QT_FILENAME=qt-everywhere-src-${QT_FULL_VERSION}.tar.xz
 DEVICE_OPT=linux-rasp-pi3-g++
 CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
@@ -17,8 +17,11 @@ if [[ ${PIVERSION} =~ 'Raspberry Pi 3' ]]; then
 elif [[ ${PIVERSION} =~ 'Raspberry Pi 4' ]]; then
    DEVICE_OPT=linux-rasp-pi4-v3d-g++
    KMS='-kms'
+elif [[ ${PIVERSION} =~ 'Raspberry Pi 2' ]]; then
+   DEVICE_OPT=linux-rasp-pi2-g++
+   KMS='-kms'
 else
-   DEVIVE_OPT=linux-rasp-pi-g++
+   DEVICE_OPT=linux-rasp-pi-g++
    KMS='-kms'
 fi
 # Set current folder as home
