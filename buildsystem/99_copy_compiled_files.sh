@@ -37,10 +37,10 @@ if [ -f ./cam_overlay/cam_overlay.bin ]; then
 fi
 
 # Create compressed qt5
-QTVERSON=`cat /usr/local/qt5/lib/pkgconfig/Qt5Core.pc | grep Version: | cut -d: -f2 | sed 's/ //g' | sed 's/\.//g'`
-ARCH=uname -m
-tar -cvf $HOME/BINARY_FILES/Qt_${QTVERSON}_${ARCH}_OpenGLES2.tar.xz /usr/local/qt5
-split -b 50m -d $HOME/BINARY_FILES/Qt_${QTVERSON}__${ARCH}_OpenGLES2.tar.xz "$HOME/BINARY_FILES/Qt_${QTVERSON}_${ARCH}_OpenGLES2.tar.xz.part"
-rm $HOME/BINARY_FILES/Qt_${QTVERSON}_${ARCH}_OpenGLES2.tar.xz
+QTVERSION=`cat /usr/local/qt5/lib/pkgconfig/Qt5Core.pc | grep Version: | cut -d: -f2 | sed 's/ //g' | sed 's/\.//g'`
+ARMARCH=`uname -m`
+tar -cvf $HOME/BINARY_FILES/Qt_${QTVERSION}_${ARMARCH}_OpenGLES2.tar.xz /usr/local/qt5
+split -b 50m -d $HOME/BINARY_FILES/Qt_${QTVERSION}_${ARMARCH}_OpenGLES2.tar.xz "$HOME/BINARY_FILES/Qt_${QTVERSION}_${ARMARCH}_OpenGLES2.tar.xz.part"
+rm $HOME/BINARY_FILES/Qt_${QTVERSION}_${ARMARCH}_OpenGLES2.tar.xz
 
 cd $HOME
