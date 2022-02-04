@@ -8,7 +8,7 @@ cd $HOME
 
 # clone git repo
 if [ ! -d aasdk ]; then
-    git clone -b new-dev https://github.com/opencardev/aasdk.git
+    git clone -b newdev https://github.com/opencardev/aasdk.git
 else
     cd aasdk
     git reset --hard
