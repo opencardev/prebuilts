@@ -8,7 +8,9 @@ QT_FULL_VERSION=$(curl -s $QT_URL$QT_VERSION/ | grep -oE -m1 href=\"[0-9\.]+ |  
 QT_FULL_VERSION='5.15.1'
 QT_FILENAME=qt-everywhere-src-${QT_FULL_VERSION}.tar.xz
 DEVICE_OPT=linux-rasp-pi3-g++
-CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
+if [ -z "${CPU_CORES_COUNT}"]; then
+  CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
+fi
 # Lookup for PI version
 PIVERSION=`grep ^Model /proc/cpuinfo` 
 if [[ ${PIVERSION} =~ 'Raspberry Pi 3' ]]; then
