@@ -1500,6 +1500,7 @@ if [ ! -z $1 ]; then
 		cs_bootrw
 		# Copy settings file
 		sudo cp -f /tmp/openauto.ini /boot/crankshaft/openauto.ini
+		sudo cp -f /tmp/openauto-logs.ini /boot/crankshaft/openauto-logs.ini
 
 		if [ -f /tmp/zoomlevel ]; then
 		    sudo sed -i 's/^RPICAM_ZOOM=.*/RPICAM_ZOOM='$(cat /tmp/zoomlevel)'/' /boot/crankshaft/crankshaft_env.sh
@@ -1525,8 +1526,17 @@ if [ ! -z $1 ]; then
 		    echo "FPS=1" >> /tmp/openauto.ini
 		    echo "OMXLayerIndex=0" >> /tmp/openauto.ini
 		fi
+		if [ -f /boot/crankshaft/openauto-logs.ini ]; then
+		    sudo cp -f /boot/crankshaft/openauto-logs.ini /tmp/openauto-logs.ini
+    else
+        echo "[Core]" > /tmp/openauto-logs.ini
+        echo "Filter=\"%Settings% >= info\"" >> /tmp/openauto-logs.ini
+        echo "DisableLogging=\"false\"" >> /tmp/openauto-logs.ini
+    fi
 		sudo chown pi:pi /tmp/openauto.ini
 		sudo chmod 777 /tmp/openauto.ini
+    sudo chown pi:pi /tmp/openauto-logs.ini
+    sudo chmod 777 /tmp/openauto-logs.ini
 		;;
 	    *)
 		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft settings save|restore${RESET}"
