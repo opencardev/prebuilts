@@ -1,5 +1,7 @@
 #!/bin/bash
-CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
+if [ -z "${CPU_CORES_COUNT}"]; then
+  CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
+fi
 # Install Pre-reqs
 sudo apt-get -y install cmake build-essential git
 sudo apt-get -y install libboost-all-dev libusb-1.0.0-dev libssl-dev cmake libprotobuf-dev protobuf-c-compiler protobuf-compiler pulseaudio librtaudio-dev libgps-dev 
