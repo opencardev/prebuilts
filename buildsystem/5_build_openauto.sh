@@ -20,12 +20,10 @@ cd $HOME
 # clone git repo
 if [ ! -d openauto ]; then
     git clone -b crankshaft-ng ${OPENAUTO_GIT_REPO}
-    git apply $HOME/libgps-openauto.patch
 else
     cd openauto
     git reset --hard
     git pull
-    git apply $HOME/libgps-openauto.patch
     cd $HOME
 fi
 
