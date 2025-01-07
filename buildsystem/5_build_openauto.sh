@@ -1,6 +1,9 @@
 #!/bin/bash
-if [ -z "${CPU_CORES_COUNT}"]; then
+if [ -z "${CPU_CORES_COUNT}" ]; then
   CPU_CORES_COUNT=`grep -c ^processor /proc/cpuinfo`
+fi
+if [ -z "${OPENAUTO_GIT_REPO}" ]; then
+  OPENAUTO_GIT_REPO='https://github.com/opencardev/openauto.git'
 fi
 # Install Pre-reqs
 sudo apt-get -y install cmake build-essential git
@@ -16,11 +19,13 @@ cd $HOME
 
 # clone git repo
 if [ ! -d openauto ]; then
-    git clone -b crankshaft-ng https://github.com/opencardev/openauto.git
+    git clone -b crankshaft-ng ${OPENAUTO_GIT_REPO}
+    git apply $HOME/libgps-openauto.patch
 else
     cd openauto
     git reset --hard
     git pull
+    git apply $HOME/libgps-openauto.patch
     cd $HOME
 fi
 
