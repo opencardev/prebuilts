@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ -z "${AASDK_GIT_REPO}" ]; then
+  AASDK_GIT_REPO='https://github.com/opencardev/aasdk.git'
+fi
+
 # Set current folder as home
 HOME="`cd $0 >/dev/null 2>&1; pwd`" >/dev/null 2>&1
 
@@ -8,7 +12,7 @@ cd $HOME
 
 # clone git repo
 if [ ! -d aasdk ]; then
-    git clone -b newdev https://github.com/opencardev/aasdk.git
+    git clone -b newdev ${AASDK_GIT_REPO}
 else
     cd aasdk
     git reset --hard
