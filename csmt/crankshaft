@@ -2134,11 +2134,135 @@ if [ ! -z $1 ]; then
 		    sudo mv -f /usr/local/bin/autoapp_helper.old /usr/local/bin/autoapp_helper
 		    cs_systemro
 		fi
+		
+		# libaasdk
+		sudo rm /tmp/libaasdk.so.md5 > /dev/null 2>&1
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		        sudo wget -q --no-check-certificate -O /tmp/libaasdk.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk.so.md5
+		    fi
+		else
+		    sudo wget -q --no-check-certificate -O /tmp/libaasdk.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk.so.md5
+		fi
+		REMOTE=$(cat /tmp/libaasdk.so.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/lib/libaasdk.so | awk {'print $1'})
+		cs_echo "New libaasdk.so file:     $REMOTE"
+		cs_echo "Current libaasdk.so file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: libaasdk.so checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: libaasdk.so is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/lib/libaasdk.so.update >/dev/null 2>&1
+			sudo rm /usr/local/lib/libaasdk.so.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+				cs_echo "DOWNLOAD: libaasdk.so dev"
+				sudo wget -q --no-check-certificate -O /usr/local/lib/libaasdk.so.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk.so
+			    fi
+			else
+			    cs_echo "DOWNLOAD: libaasdk.so"
+			    sudo wget -q --no-check-certificate -O /usr/local/lib/libaasdk.so.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk.so
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/lib/libaasdk.so.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/lib/libaasdk.so /usr/local/lib/libaasdk.so.old
+			    sudo cp -f /usr/local/lib/libaasdk.so.update /usr/local/lib/libaasdk.so
+			    sudo chmod 644 /usr/local/lib/libaasdk.so
+			    sudo rm /usr/local/lib/libaasdk.so.update
+			    cs_echo ""
+			    cs_echo "OK: libaasdk.so updated."
+			    restart=1
+			else
+			    sudo rm /usr/local/lib/libaasdk.so.update >/dev/null 2>&1
+			    cs_echo "ABORT: libaasdk.so download checksum fail."
+			fi
+			cs_systemro
+		    fi
+		fi
+
+		# libaasdk.so failsave restore if missing and old build present
+		if [ ! -f /usr/local/lib/libaasdk.so ] && [ -f /usr/local/lib/libaasdk.so.old ]; then
+		    cs_systemrw
+		    cs_echo "WARN: libaasdk.so was missing - failsave restore done!"
+		    sudo mv -f /usr/local/lib/libaasdk.so.old /usr/local/lib/libaasdk.so
+		    cs_systemro
+		fi
+
+		# libaasdk_proto
+		sudo rm /tmp/libaasdk_proto.so.md5 > /dev/null 2>&1
+		if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+		        sudo wget -q --no-check-certificate -O /tmp/libaasdk_proto.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk_proto.so.md5
+		    fi
+		else
+		    sudo wget -q --no-check-certificate -O /tmp/libaasdk_proto.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk_proto.so.md5
+		fi
+		REMOTE=$(cat /tmp/libaasdk_proto.so.md5 | awk {'print $1'})
+		LOCAL=$(md5sum /usr/local/lib/libaasdk_proto.so | awk {'print $1'})
+		cs_echo "New libaasdk_proto.so file:     $REMOTE"
+		cs_echo "Current libaasdk_proto.so file: $LOCAL"
+		if [ -z $REMOTE ] || [ -z $LOCAL ]; then
+		    cs_echo "ABORT: libaasdk_proto.so checksum fail."
+		else
+		    if [ "$REMOTE" == "$LOCAL" ]; then
+			cs_echo ""
+			cs_echo "ABORT: libaasdk_proto.so is up to date."
+			cs_echo ""
+		    else
+			cs_systemrw
+			sudo rm /usr/local/lib/libaasdk_proto.so.update >/dev/null 2>&1
+			sudo rm /usr/local/lib/libaasdk_proto.so.old >/dev/null 2>&1
+			# get source file
+			if [ ! -z $3 ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			    if [ "$3" == "dev" ] || [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+				cs_echo "DOWNLOAD: libaasdk_proto.so dev"
+				sudo wget -q --no-check-certificate -O /usr/local/lib/libaasdk_proto.so.update https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk_proto.so
+			    fi
+			else
+			    cs_echo "DOWNLOAD: libaasdk_proto.so"
+			    sudo wget -q --no-check-certificate -O /usr/local/lib/libaasdk_proto.so.update https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk_proto.so
+			fi
+			# check download
+			LOCAL=$(md5sum /usr/local/lib/libaasdk_proto.so.update | awk {'print $1'})
+			if [ "$REMOTE" == "$LOCAL" ]; then
+			    cs_echo "REPLACE: openauto"
+			    sudo mv -f /usr/local/lib/libaasdk_proto.so /usr/local/lib/libaasdk_proto.so.old
+			    sudo cp -f /usr/local/lib/libaasdk_proto.so.update /usr/local/lib/libaasdk_proto.so
+			    sudo chmod 644 /usr/local/lib/libaasdk_proto.so
+			    sudo rm /usr/local/lib/libaasdk_proto.so.update
+			    cs_echo ""
+			    cs_echo "OK: libaasdk_proto.so updated."
+			    restart=1
+			else
+			    sudo rm /usr/local/lib/libaasdk_proto.so.update >/dev/null 2>&1
+			    cs_echo "ABORT: libaasdk_proto.so download checksum fail."
+			fi
+			cs_systemro
+		    fi
+		fi
+
+		# libaasdk_proto.so failsave restore if missing and old build present
+		if [ ! -f /usr/local/lib/libaasdk_proto.so ] && [ -f /usr/local/lib/libaasdk_proto.so.old ]; then
+		    cs_systemrw
+		    cs_echo "WARN: libaasdk_proto.so was missing - failsave restore done!"
+		    sudo mv -f /usr/local/lib/libaasdk_proto.so.old /usr/local/lib/libaasdk_proto.so
+		    cs_systemro
+		fi
 
 		if [ $restart -eq 1 ]; then
 		    cs_echo "Restarting openauto after update"
 		    touch /tmp/openauto_restart_updated > /dev/null 2>&1
 		    sudo rm /tmp/openauto_updating > /dev/null 2>&1
+			# ldconfig to ensure libaasdk linked correctly
+			sudo ldconfig 2>&1
 		    sudo systemctl restart openauto
 		fi
 		sudo rm /tmp/openauto_updating > /dev/null 2>&1
@@ -2208,7 +2332,7 @@ if [ ! -z $1 ]; then
 		    LOCAL_UDEV=$(md5sum /etc/udev/rules.d/51-android.master | awk {'print $1'})
 		    sudo rm /tmp/51-android.rules.md5 > /dev/null 2>&1
 
-		    # Check crankshaft amangement tool
+		    # Check crankshaft management tool
 		    sudo rm /tmp/crankshaft.md5 > /dev/null 2>&1
 		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
 			sudo wget -q --no-check-certificate -O /tmp/crankshaft.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/csmt/crankshaft.md5
@@ -2229,6 +2353,28 @@ if [ ! -z $1 ]; then
 		    REMOTE_OPENAUTO=$(cat /tmp/autoapp.md5 | awk {'print $1'})
 		    LOCAL_OPENAUTO=$(md5sum /usr/local/bin/autoapp | awk {'print $1'})
 		    sudo rm /tmp/autoapp.md5 > /dev/null 2>&1
+
+		    # Check libaasdk
+		    sudo rm /tmp/libaasdk.so.md5 > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/libaasdk.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk.so.md5
+		    else
+			sudo wget -q --no-check-certificate -O /tmp/libaasdk.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk.so.md5
+		    fi
+		    REMOTE_LIBAASDK=$(cat /tmp/libaasdk.so.md5 | awk {'print $1'})
+		    LOCAL_LIBAASDK=$(md5sum /usr/local/lib/libaasdk.so | awk {'print $1'})
+		    sudo rm /tmp/libaasdk.so.md5 > /dev/null 2>&1
+
+			# Check libaasdk_proto
+		    sudo rm /tmp/libaasdk_proto.so.md5 > /dev/null 2>&1
+		    if [ "$(cat /etc/crankshaft.branch)" == "csng-dev" ]; then
+			sudo wget -q --no-check-certificate -O /tmp/libaasdk_proto.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/csng-dev/openauto/libaasdk_proto.so.md5
+		    else
+			sudo wget -q --no-check-certificate -O /tmp/libaasdk_proto.so.md5 https://raw.githubusercontent.com/opencardev/prebuilts/master/openauto/libaasdk_proto.so.md5
+		    fi
+		    REMOTE_LIBAASDK_PROTO=$(cat /tmp/libaasdk_proto.so.md5 | awk {'print $1'})
+		    LOCAL_LIBAASDK_PROTO=$(md5sum /usr/local/lib/libaasdk_proto.so | awk {'print $1'})
+		    sudo rm /tmp/libaasdk_proto.so.md5 > /dev/null 2>&1
 
 		    # Check latest image
 		    sudo rm /tmp/latestimage > /dev/null 2>&1
@@ -2265,8 +2411,8 @@ if [ ! -z $1 ]; then
 		    else
 			sudo rm /tmp/csmt_update_available > /dev/null 2>&1
 		    fi
-		    # openauto
-		    if [ "$REMOTE_OPENAUTO" != "$LOCAL_OPENAUTO" ]; then
+		    # openauto, libaasdk, libaasdk_proto
+		    if [ "$REMOTE_OPENAUTO" != "$LOCAL_OPENAUTO" ] | [ "$REMOTE_LIBAASDK" != "$LOCAL_LIBAASDK" ] | [ "$REMOTE_LIBAASDK_PROTO" != "$LOCAL_LIBAASDK_PROTO" ]; then
 			cs_echo "New openauto available!"
 			sudo rm /tmp/openauto_update_available > /dev/null 2>&1
 			touch /tmp/openauto_update_available
@@ -2313,7 +2459,7 @@ if [ ! -z $1 ]; then
 		    fi
 
 		    # no updates
-		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_IMAGE" != "new" ]; then
+		    if [ "$REMOTE_CSMT" == "$LOCAL_CSMT" ] && [ "$REMOTE_UDEV" == "$LOCAL_UDEV" ] && [ "$REMOTE_OPENAUTO" == "$LOCAL_OPENAUTO" ] && [ "$REMOTE_LIBAASDK" == "$LOCAL_LIBAASDK"] && [ "$REMOTE_LIBAASDK_PROTO" == "$LOCAL_LIBAASDK_PROTO"] && [ "$REMOTE_IMAGE" != "new" ]; then
 			cs_echo "No new updates"
 		    fi
 		else
@@ -2335,7 +2481,7 @@ if [ ! -z $1 ]; then
 		sudo rm /media/USBDRIVES/CSSTORAGE/$(basename $(cat /tmp/latestimage))
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check|cancel${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|aasdk|check|cancel${RESET}"
 		;;
 	esac
     fi
