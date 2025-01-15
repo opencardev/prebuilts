@@ -2481,7 +2481,7 @@ if [ ! -z $1 ]; then
 		sudo rm /media/USBDRIVES/CSSTORAGE/$(basename $(cat /tmp/latestimage))
 		;;
 	    *)
-		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|aasdk|check|cancel${RESET}"
+		cs_echo "${YELLOW}${BOLD}Syntax: crankshaft update udev|csmt|openauto|check|cancel${RESET}"
 		;;
 	esac
     fi
